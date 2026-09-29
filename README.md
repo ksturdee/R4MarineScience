@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository contains my work for Workshop 1 of MB5370 Techniques in Marine Science 1 (James Cook University).
+Coursework and practical exercises completed for MB5370: Techniques in Marine Science 1 at James Cook University.
 
 The workshop focused on:
 
@@ -23,3 +23,7 @@ R4MarineScience/
 ├── docs/       # Quarto documents and rendered outputs
 ├── outputs/    # Figures and summary tables
 └── README.md
+
+## Author
+
+Kendra Sturdee
