@@ -6,7 +6,7 @@
 .DS_Store
 
 # Extensions to ignore - toggle on and off as required
-*.html
+# *.html
 # *.png
 # *.jpg
 # *.jpeg
@@ -19,7 +19,7 @@
 
 # Folders to ignore
 archive/
-output/
+# outputs/
 
 # Keywords to ignore
 *archive

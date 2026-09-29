@@ -14,11 +14,7 @@ editor: visual
 echo: false
 ---
 
-# Introduction
-
-Briefly introduce the Palmer Penguins dataset and the purpose of the analysis.
-
-## Setup
+# 
 
 ```{r}
 library(tidyverse)
@@ -33,16 +29,7 @@ library(here)
 
 ```{r}
 #| echo: false
-#| #  Pipe your data to group_by() and summarise() to calculate the mean body mass for each species and island.
-penguinoverview <- penguins %>%
-  group_by(species, island) %>%
-  summarise(
-    mean_mass_g = mean(body_mass_g, na.rm = TRUE),         # Calculate mean ignoring missing cells
-    sd_mass_g   = sd(body_mass_g, na.rm = TRUE)            # Standard deviation calculation
-  )
-
-penguinoverview
-
+#| 
 penguins %>%
   ggplot(aes(x = species,
              y = body_mass_g,
@@ -227,7 +214,11 @@ penguinoverview <- penguins %>%
     .groups = "drop"
   )
 
-penguinoverview
+view(penguinoverview)
 ```
 
 Overall, it seems like gentoo penguins are the heaviest by a wide margin, while chinstrap and adelie are more closely related in size.
+
+Evidently, mean body mass differed between penguin species, with Gentoo penguins generally exhibiting larger body masses than Adelie and Chinstrap penguins. There was also some variation between islands, suggesting that location may influence morphological characteristics.
+
+While the standard error and standard deviations plots were generally pretty similar, the former showed more precise estimates of mean body mass, while the latter showed the greater variability among individual penguins within each species-island grouping. It seems that both species and environmental context may contribute to variation in biological traits.
