@@ -217,8 +217,6 @@ penguinoverview <- penguins %>%
 view(penguinoverview)
 ```
 
-Overall, it seems like gentoo penguins are the heaviest by a wide margin, while chinstrap and adelie are more closely related in size.
-
 Evidently, mean body mass differed between penguin species, with Gentoo penguins generally exhibiting larger body masses than Adelie and Chinstrap penguins. There was also some variation between islands, suggesting that location may influence morphological characteristics.
 
 While the standard error and standard deviations plots were generally pretty similar, the former showed more precise estimates of mean body mass, while the latter showed the greater variability among individual penguins within each species-island grouping. It seems that both species and environmental context may contribute to variation in biological traits.
