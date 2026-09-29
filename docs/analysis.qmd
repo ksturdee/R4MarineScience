@@ -14,9 +14,7 @@ editor: visual
 echo: false
 ---
 
-# Overview
-
-In this workshop, I used the Palmer Penguins dataset to explore patterns in penguin morphology and investigate how body size varies among species and locations using data wrangling and visualisation techniques in R. The penguins data includes morphological measurements of three penguin species (Adelie, Chinstrap, and Gentoo) from islands near Palmer Station, Antarctica. Besides body mass, the dataset also includes bill length, bill depth, flipper length, sex, species, and island location.
+# Data visualization
 
 ```{r}
 library(tidyverse)
@@ -24,7 +22,7 @@ library(palmerpenguins)
 library(here)
 ```
 
-## Visualizing Body Size and Shape
+## Body Mass Distribution 
 
 The following figure compares the distribution of body mass between penguin species and islands.
 
@@ -232,6 +230,6 @@ mass_compare_plot_se <- penguins |>
 mass_compare_plot_se
 ```
 
-## Discussion
+## Key findings
 
-While the standard error and standard deviations plots were generally pretty similar, the former showed more precise estimates of mean body mass, while the latter showed the greater variability among individual penguins within each species-island grouping. It seems that both species and environmental context may contribute to variation in biological traits.
+While the standard error and standard deviations plots were generally pretty similar, the former showed more precise estimates of mean body mass, while the latter showed the greater variability among individual penguins within each species-island grouping. In general, Gentoo penguins were the largest of the three species, and body mass also differed among islands.
