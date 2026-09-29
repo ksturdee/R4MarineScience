@@ -2177,10 +2177,13 @@ vertical-align: -.125em;
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#section" id="toc-section" class="nav-link active" data-scroll-target="#section"></a>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a>
   <ul class="collapse">
   <li><a href="#visualizing-body-size-and-shape" id="toc-visualizing-body-size-and-shape" class="nav-link" data-scroll-target="#visualizing-body-size-and-shape">Visualizing Body Size and Shape</a></li>
+  <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation">Interpretation</a></li>
+  <li><a href="#summary-statistics" id="toc-summary-statistics" class="nav-link" data-scroll-target="#summary-statistics">Summary Statistics</a></li>
   <li><a href="#visualizing-mean-trends-with-uncertainty" id="toc-visualizing-mean-trends-with-uncertainty" class="nav-link" data-scroll-target="#visualizing-mean-trends-with-uncertainty"><strong>Visualizing Mean Trends with Uncertainty</strong></a></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion">Discussion</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -2218,10 +2221,12 @@ vertical-align: -.125em;
 </header>
 
 
-<section id="section" class="level1">
-<h1></h1>
+<section id="overview" class="level1">
+<h1>Overview</h1>
+<p>In this workshop, I used the Palmer Penguins dataset to explore patterns in penguin morphology and investigate how body size varies among species and locations using data wrangling and visualisation techniques in R. The penguins data includes morphological measurements of three penguin species (Adelie, Chinstrap, and Gentoo) from islands near Palmer Station, Antarctica. Besides body mass, the dataset also includes bill length, bill depth, flipper length, sex, species, and island location.</p>
 <section id="visualizing-body-size-and-shape" class="level2">
 <h2 class="anchored" data-anchor-id="visualizing-body-size-and-shape">Visualizing Body Size and Shape</h2>
+<p>The following figure compares the distribution of body mass between penguin species and islands.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -2232,8 +2237,76 @@ vertical-align: -.125em;
 </div>
 </div>
 </section>
+<section id="interpretation" class="level2">
+<h2 class="anchored" data-anchor-id="interpretation">Interpretation</h2>
+<p>Gentoo penguins had the greatest body mass, while Adelie and Chinstrap penguins tended to be generally lighter. The slight variation between islands may suggest that environmental factors are contributing to differences in body mass.</p>
+</section>
+<section id="summary-statistics" class="level2">
+<h2 class="anchored" data-anchor-id="summary-statistics">Summary Statistics</h2>
+<p>The mean body mass was then calculated for each penguin species (grouped by island).</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Summary statistics by species and island.</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">species</th>
+<th style="text-align: left;">island</th>
+<th style="text-align: right;">mean_mass_g</th>
+<th style="text-align: right;">sd_mass_g</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">se_mass_g</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Adelie</td>
+<td style="text-align: left;">Biscoe</td>
+<td style="text-align: right;">3709.66</td>
+<td style="text-align: right;">487.73</td>
+<td style="text-align: right;">44</td>
+<td style="text-align: right;">73.53</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Adelie</td>
+<td style="text-align: left;">Dream</td>
+<td style="text-align: right;">3688.39</td>
+<td style="text-align: right;">455.15</td>
+<td style="text-align: right;">56</td>
+<td style="text-align: right;">60.82</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Adelie</td>
+<td style="text-align: left;">Torgersen</td>
+<td style="text-align: right;">3706.37</td>
+<td style="text-align: right;">445.11</td>
+<td style="text-align: right;">52</td>
+<td style="text-align: right;">61.73</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Chinstrap</td>
+<td style="text-align: left;">Dream</td>
+<td style="text-align: right;">3733.09</td>
+<td style="text-align: right;">384.34</td>
+<td style="text-align: right;">68</td>
+<td style="text-align: right;">46.61</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Gentoo</td>
+<td style="text-align: left;">Biscoe</td>
+<td style="text-align: right;">5076.02</td>
+<td style="text-align: right;">504.12</td>
+<td style="text-align: right;">124</td>
+<td style="text-align: right;">45.27</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
 <section id="visualizing-mean-trends-with-uncertainty" class="level2">
 <h2 class="anchored" data-anchor-id="visualizing-mean-trends-with-uncertainty"><strong>Visualizing Mean Trends with Uncertainty</strong></h2>
+<p>The figures below show mean body mass with standard deviation and standard error bars.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -2252,8 +2325,9 @@ vertical-align: -.125em;
 </div>
 </div>
 </div>
-<p>Using standard error instead of standard deviation returned a similar trend with narrower error bars.</p>
-<p>Evidently, mean body mass differed between penguin species, with Gentoo penguins generally exhibiting larger body masses than Adelie and Chinstrap penguins. There was also some variation between islands, suggesting that location may influence morphological characteristics.</p>
+</section>
+<section id="discussion" class="level2">
+<h2 class="anchored" data-anchor-id="discussion">Discussion</h2>
 <p>While the standard error and standard deviations plots were generally pretty similar, the former showed more precise estimates of mean body mass, while the latter showed the greater variability among individual penguins within each species-island grouping. It seems that both species and environmental context may contribute to variation in biological traits.</p>
 </section>
 </section>

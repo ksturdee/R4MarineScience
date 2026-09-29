@@ -14,22 +14,23 @@ editor: visual
 echo: false
 ---
 
-# 
+# Overview
+
+In this workshop, I used the Palmer Penguins dataset to explore patterns in penguin morphology and investigate how body size varies among species and locations using data wrangling and visualisation techniques in R. The penguins data includes morphological measurements of three penguin species (Adelie, Chinstrap, and Gentoo) from islands near Palmer Station, Antarctica. Besides body mass, the dataset also includes bill length, bill depth, flipper length, sex, species, and island location.
 
 ```{r}
 library(tidyverse)
 library(palmerpenguins)
 library(here)
-
-#| echo: false
-#| source(here::here("code", "workshop_01_r4marinescience.R"))
 ```
 
 ## Visualizing Body Size and Shape
 
+The following figure compares the distribution of body mass between penguin species and islands.
+
 ```{r}
 #| echo: false
-#| 
+
 penguins %>%
   ggplot(aes(x = species,
              y = body_mass_g,
@@ -71,7 +72,37 @@ penguins %>%
 
 ```
 
+## Interpretation
+
+Gentoo penguins had the greatest body mass, while Adelie and Chinstrap penguins tended to be generally lighter. The slight variation between islands may suggest that environmental factors are contributing to differences in body mass.
+
+## Summary Statistics
+
+The mean body mass was then calculated for each penguin species (grouped by island).
+
+```{r}
+#| echo: false
+
+penguinoverview <- penguins |>
+  group_by(species, island) |>
+  summarise(
+    mean_mass_g = mean(body_mass_g, na.rm = TRUE),
+    sd_mass_g = sd(body_mass_g, na.rm = TRUE),
+    n = n(),
+    se_mass_g = sd_mass_g / sqrt(n),
+    .groups = "drop"
+  )
+
+knitr::kable(
+  penguinoverview,
+  digits = 2,
+  caption = "Summary statistics by species and island."
+)
+```
+
 ## **Visualizing Mean Trends with Uncertainty**
+
+The figures below show mean body mass with standard deviation and standard error bars.
 
 ```{r}
 #| echo: false
@@ -201,22 +232,6 @@ mass_compare_plot_se <- penguins |>
 mass_compare_plot_se
 ```
 
-Using standard error instead of standard deviation returned a similar trend with narrower error bars.
-
-```{r}
-penguinoverview <- penguins %>%
-  group_by(species, island) %>%
-  summarise(
-    mean_mass_g = mean(body_mass_g, na.rm = TRUE),
-    sd_mass_g = sd(body_mass_g, na.rm = TRUE),
-    n = n(),
-    se_mass_g = sd_mass_g / sqrt(n),
-    .groups = "drop"
-  )
-
-view(penguinoverview)
-```
-
-Evidently, mean body mass differed between penguin species, with Gentoo penguins generally exhibiting larger body masses than Adelie and Chinstrap penguins. There was also some variation between islands, suggesting that location may influence morphological characteristics.
+## Discussion
 
 While the standard error and standard deviations plots were generally pretty similar, the former showed more precise estimates of mean body mass, while the latter showed the greater variability among individual penguins within each species-island grouping. It seems that both species and environmental context may contribute to variation in biological traits.

@@ -16,17 +16,25 @@ mangrove_data <- read_csv(
 
 ### Data frame architectures: Tibbles versus legacy tables
 # Force a modern tibble to degrade into a legacy base R data frame structure
-reef_cover_log_df <- as.data.frame(reef_cover_log)
+# reef_cover_log_df <- as.data.frame(reef_cover_log)
 
 # Print the old-style dataframe structure to view
-print(reef_cover_log_df)
+# print(reef_cover_log_df)
 
 # And compare with tibble alternative
-print(reef_cover_log)
+# print(reef_cover_log)
+
 
 ###  Wrangling out ecological signals using Palmer Penguins
 library(palmerpenguins)
 data(penguins)
+
+# Convert the penguin tibble to a legacy base R data frame
+penguins_df <- as.data.frame(penguins)
+
+# Compare the base data frame with the original tibble
+print(penguins_df)
+print(penguins)
 
 # Examine the structure of the dataset - always do this when loading a new dataset!
 str(penguins)
@@ -118,10 +126,70 @@ print(biological_signal)
 
 
 # 1. Exporting our collapsed summary table as a universal flat text file
-write_csv(biological_signal, "outputs/penguin_species_mass_summary.csv")
+write_csv(
+  biological_signal,
+  here::here("outputs", "penguin_species_mass_summary.csv")
+)
 
 # 2. Saving our cleaned morphological cohort table as a native R binary file
-saveRDS(morphology_metrics, "outputs/clean_penguin_morphology_cohort.rds")
+saveRDS(morphology_metrics, here::here("outputs", "clean_penguin_morphology_cohort.rds"))
+
+mass_compare_plot <- penguins |>
+  group_by(species, island) |>
+  summarise(
+    mean_mass = mean(body_mass_g, na.rm = TRUE),
+    sd_mass = sd(body_mass_g, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  ) |>
+  ggplot(aes(x = species, y = mean_mass, colour = island)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = mean_mass - sd_mass, 
+                    ymax = mean_mass + sd_mass), 
+                width = 0.2) +
+  labs(
+    title = "Mean Body Mass by Species and Island",
+    subtitle = "Error bars represent standard deviation",
+    y = "Mean Body Mass (g)",
+    x = "Species",
+    colour = "Island"
+  ) +
+  scale_colour_manual(
+    values = c(
+      "darkgreen",
+      "saddlebrown",
+      "goldenrod"
+    )
+  ) + 
+  theme_minimal() +
+  theme(
+    text = element_text(color = "black"),
+    axis.text = element_text(color = "black"),
+    axis.title = element_text(color = "black"),
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    legend.background = element_rect(
+      fill = "grey95",
+      color = "grey70"
+    ),
+    legend.key = element_rect(
+      fill = "grey95",
+      color = NA
+    ),
+    legend.position = "right",
+    plot.title = element_text(
+      face = "bold",
+      hjust = 0.5
+    ),
+    plot.subtitle = element_text(
+      hjust = 0.5,
+      color = "black"
+    )
+  )
+
+mass_compare_plot
 
 ggsave("outputs/mass_compare_plot.png", 
        plot = mass_compare_plot, 
