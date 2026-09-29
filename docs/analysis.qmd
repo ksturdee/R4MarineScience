@@ -1,26 +1,233 @@
 ---
 title: "R for Marine Science: Workshop 1"
-format: html
+author: "Kendra Sturdee"
+date: today
+format:
+  html:
+    toc: true
+    code-fold: true
+    embed-resources: true
+execute:
+  warning: false
+  message: false
 editor: visual
+echo: false
 ---
 
-## Quarto
+# Introduction
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+Briefly introduce the Palmer Penguins dataset and the purpose of the analysis.
 
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+## Setup
 
 ```{r}
-1 + 1
+library(tidyverse)
+library(palmerpenguins)
+library(here)
+
+#| echo: false
+#| source(here::here("code", "workshop_01_r4marinescience.R"))
 ```
 
-You can add options to executable code like this
+## Visualizing Body Size and Shape
 
 ```{r}
 #| echo: false
-2 * 2
+#| #  Pipe your data to group_by() and summarise() to calculate the mean body mass for each species and island.
+penguinoverview <- penguins %>%
+  group_by(species, island) %>%
+  summarise(
+    mean_mass_g = mean(body_mass_g, na.rm = TRUE),         # Calculate mean ignoring missing cells
+    sd_mass_g   = sd(body_mass_g, na.rm = TRUE)            # Standard deviation calculation
+  )
+
+penguinoverview
+
+penguins %>%
+  ggplot(aes(x = species,
+             y = body_mass_g,
+             fill = island)) +
+  geom_boxplot(color = "black") +
+  labs(
+    title = "Penguin Body Mass by Species and Island",
+    x = "Species",
+    y = "Body Mass (g)",
+    fill = "Island"
+  ) +
+  theme_minimal() +
+  scale_fill_manual(values = c(
+    "darkgreen",
+    "saddlebrown",
+    "goldenrod"
+  )) +
+  theme(
+    text = element_text(color = "black"),
+    axis.text = element_text(color = "black"),
+    axis.title = element_text(color = "black"),
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.minor = element_blank(),
+    legend.background = element_rect(
+      fill = "grey95",
+      color = "grey70"
+    ),
+    legend.key = element_rect(
+      fill = "grey95",
+      color = NA
+    ),
+    legend.position = "right",
+    plot.title = element_text(
+      face = "bold",
+      hjust = 0.5
+    )
+  )
+
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+## **Visualizing Mean Trends with Uncertainty**
+
+```{r}
+#| echo: false
+#| # Pipe directly from aggregation to plotting with error bars
+
+mass_compare_plot <- penguins |>
+  group_by(species, island) |>
+  summarise(
+    mean_mass = mean(body_mass_g, na.rm = TRUE),
+    sd_mass = sd(body_mass_g, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  ) |>
+  ggplot(aes(x = species, y = mean_mass, colour = island)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = mean_mass - sd_mass, 
+                    ymax = mean_mass + sd_mass), 
+                width = 0.2) +
+  labs(
+    title = "Mean Body Mass by Species and Island",
+    subtitle = "Error bars represent standard deviation",
+    y = "Mean Body Mass (g)",
+    x = "Species",
+    colour = "Island"
+  ) +
+  scale_colour_manual(
+    values = c(
+      "darkgreen",
+      "saddlebrown",
+      "goldenrod"
+    )
+  ) + 
+  theme_minimal() +
+  theme(
+    text = element_text(color = "black"),
+    axis.text = element_text(color = "black"),
+    axis.title = element_text(color = "black"),
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    legend.background = element_rect(
+      fill = "grey95",
+      color = "grey70"
+    ),
+    legend.key = element_rect(
+      fill = "grey95",
+      color = NA
+    ),
+    legend.position = "right",
+    plot.title = element_text(
+      face = "bold",
+      hjust = 0.5
+    ),
+    plot.subtitle = element_text(
+      hjust = 0.5,
+      color = "black"
+    )
+  )
+
+
+mass_compare_plot
+
+```
+
+```{r}
+mass_compare_plot_se <- penguins |>
+  group_by(species, island) |>
+  summarise(
+    mean_mass = mean(body_mass_g, na.rm = TRUE),
+    sd_mass = sd(body_mass_g, na.rm = TRUE),
+    n = n(),
+    se_mass = sd_mass / sqrt(n),
+    .groups = "drop"
+  ) |>
+  ggplot(aes(x = species, y = mean_mass, colour = island)) +
+  geom_point(size = 3) +
+  geom_errorbar(
+    aes(
+      ymin = mean_mass - se_mass,
+      ymax = mean_mass + se_mass
+    ),
+    width = 0.2
+  ) +
+  labs(
+    title = "Mean Body Mass by Species and Island",
+    subtitle = "Error bars represent standard error",
+    y = "Mean Body Mass (g)",
+    x = "Species",
+    colour = "Island"
+  ) +
+  scale_colour_manual(
+    values = c(
+      "darkgreen",
+      "saddlebrown",
+      "goldenrod"
+    )
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(color = "black"),
+    axis.text = element_text(color = "black"),
+    axis.title = element_text(color = "black"),
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    legend.background = element_rect(
+      fill = "grey95",
+      color = "grey70"
+    ),
+    legend.key = element_rect(
+      fill = "grey95",
+      color = NA
+    ),
+    legend.position = "right",
+    plot.title = element_text(
+      face = "bold",
+      hjust = 0.5
+    ),
+    plot.subtitle = element_text(
+      hjust = 0.5,
+      color = "black"
+    )
+  )
+
+mass_compare_plot_se
+```
+
+Using standard error instead of standard deviation returned a similar trend with narrower error bars.
+
+```{r}
+penguinoverview <- penguins %>%
+  group_by(species, island) %>%
+  summarise(
+    mean_mass_g = mean(body_mass_g, na.rm = TRUE),
+    sd_mass_g = sd(body_mass_g, na.rm = TRUE),
+    n = n(),
+    se_mass_g = sd_mass_g / sqrt(n),
+    .groups = "drop"
+  )
+
+penguinoverview
+```
+
+Overall, it seems like gentoo penguins are the heaviest by a wide margin, while chinstrap and adelie are more closely related in size.

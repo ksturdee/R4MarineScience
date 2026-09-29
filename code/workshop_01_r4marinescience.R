@@ -116,8 +116,17 @@ biological_signal <- penguins %>%
 
 print(biological_signal)
 
-### Integrating data grammar with visual diagnostics in qmd
 
+# 1. Exporting our collapsed summary table as a universal flat text file
+write_csv(biological_signal, "outputs/penguin_species_mass_summary.csv")
+
+# 2. Saving our cleaned morphological cohort table as a native R binary file
+saveRDS(morphology_metrics, "outputs/clean_penguin_morphology_cohort.rds")
+
+ggsave("outputs/mass_compare_plot.png", 
+       plot = mass_compare_plot, 
+       width = 120, height = 120, 
+       units = "mm", dpi = 300)
 
 
 
