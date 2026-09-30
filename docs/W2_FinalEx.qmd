@@ -1,47 +1,50 @@
 ---
-title: "Keystone exercise: Estuary Fish Survey (Data rescue)"
+title: "Estuary Fish Survey: Data Cleaning, Integration and Visualisation"
 author: "Kendra Sturdee"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: 
- html_document:
-    code_folding: show
-    collapse: no
-    df_print: paged
-    fig_caption: yes
-    fig_height: 6
-    fig_width: 10
-    highlight: textmate
+date: today
+
+format:
+  html:
+    toc: true
+    code-fold: false
+    embed-resources: true
+    fig-caption: true
     theme: spacelab
-    toc: yes
-    toc_float: yes
-editor_options: 
+    highlight-style: textmate
+
+execute:
+  echo: false
+  warning: false
+  message: false
+
+editor: visual
+
+editor_options:
   chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
 # Set options, housekeeping
 knitr::opts_chunk$set(
-	echo = TRUE,
-	include = TRUE,
-	message = FALSE,
-	warning = FALSE)
+echo = TRUE,
+warning = FALSE,
+message = FALSE,
+fig.align = "center"
+)
 ```
 
 # Introduction
 
 The goal of this exercise is to wrangle extremely messy data, and produce a final clean dataset and figure on the Ross River estuary fish surveys. The data are from a previous PhD student who conducted surveys over 30 days in May 2026 at four different sites along the Ross River estuary, Townsville, Queensland, Australia. The data include catch counts for four different fish species, as well as environmental data (temperature, salinity, and turbidity) collected at each site using sonde sensors.
 
-# Housekeeping
+## Packages and housekeeping 
 
-```{r housekeeping}
+```{r packages and housekeeping}
+
 #| message: true
 #| warning: false
 rm(list = ls())
-```
 
-# Packages
-
-```{r packages}
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
@@ -49,9 +52,7 @@ library(lubridate)
 library(readxl)
 ```
 
-# Load files
-
-# Main dataset
+## Main dataset
 
 The catch data is split across 4 tabs in one excel file Load. We must load them indivudally.
 
@@ -62,7 +63,7 @@ catch3 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 3)
 catch4 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 4)
 ```
 
-# Inspect individual tabs
+## Inspect individual tabs
 Must inspect the data for missing values, discreptancies, and errors before we proceed. 
 ```{r inspect-catch-tabs}
 catch1
@@ -71,14 +72,14 @@ catch3
 catch4
 ```
 The species names are messy but they are consistent across the four tabs. The site names are also messy and inconsistent across the four tabs.
-# Bind rows together
+## Bind rows together
 ```{r bind-catch}
 catch_data <- bind_rows(catch1, catch2, catch3, catch4)
 # Clean up the environment
 rm(catch1, catch2, catch3, catch4) # Clean up the environment
 ```
 
-# Preliminary checks
+## Preliminary checks
 ```{r inspect-catch}
 catch_data
 head(catch_data)
@@ -97,12 +98,12 @@ catch_data |>
 ```
 Now I know I have four sites, and four species. By naming convention, I can infer that the sites are located along the Ross River estuary, but I need to check this against the metadata once I load it. The species names are also messy and will need to be cleaned before I can join with the taxonomic dictionary to get scientific names.
 
-# Load metadata
+## Load metadata
 ```{r load-metadata}
 metadata <- read_csv("../data/workshop2/estuary_metadata.csv")
 ```
 
-# Checks
+## Checks
 ```{r inspect-metadata}
 head(metadata)
 glimpse(metadata)
@@ -128,7 +129,7 @@ metadata <- metadata |>
   )
 ```
 
-# Sanity check
+## Sanity check
 ```{r recheck-site-names}
 catch_data |> 
   str()
@@ -181,7 +182,7 @@ glimpse(catch_data)
 ```
 Looks cleaner, but must still add metadata in, and must incorporate dataset with sonde/sensor data.
 
-# Load the sonde data
+## Load the sonde data
 (Code for this is written in separate script which we can source from here)
 ```{r load-sonde}
 
@@ -200,7 +201,7 @@ catch_data_final <- catch_data |>
   left_join(sensor_daily, by = join_by(site, date))
 ```
 
-# Sanity check
+## Sanity check
 ```{r check-final-join}
 glimpse(catch_data_final)
 ```
@@ -208,7 +209,7 @@ At first glance it looks good. However, note that there are only 427 rows of dat
 
 # Wrangle final dataset
 
-```{r wrangle-final-zeros}
+```{r Clean Master Dataset}
 catch_data_final <- 
 catch_data_final |> 
   complete(
@@ -226,7 +227,7 @@ catch_data_final
 ```
 Perfect, we now have 480 rows. Now, we can shift gears and start thinking about how we want to analyze and interpret this data. We can start by looking at the environmental variables (salinity, turbidity, temperature) across the different zones (downstream, midstream, upstream), and then we can look at the fish abundance patterns across these zones.
 
-#### Salinity
+## Salinity
 ```{r}
 # Table
 sal_sum <- 
@@ -267,10 +268,10 @@ sal_sum |>
        x = "Zone",
        y = "Median Salinity (ppt)")
 ```
-# Interpretation
+### Interpretation
 There is a clear difference in salinity across the zones, with the downstream zone having the highest salinity, and the upstream zone having the lowest. This is consistent with our expectations for an estuarine system, where salinity typically decreases as you move upstream from the ocean.
 
-### Turbidity
+## Turbidity
 ```{r}
 turb_sum <- 
   catch_data_final |>
@@ -295,11 +296,11 @@ turb_sum |>
        x = "Zone",
        y = "Median Turbidity (NTU)")
 ```
-# Interpretation
+### Interpretation
 Median turbidity is highest in the midstream zone, and lowest in the downstream zone. This could be due to a number of factors, including sediment input from upstream sources, or differences in water flow and mixing across the zones. However overall, the differences in turbidity across the zones are not as pronounced as those for salinity, and the standard deviations are relatively large (range: 2.1-4.8 NTU), indicating high variability in turbidity within each zone.
 
 
-### Temperature
+## Temperature
 ```{r}
 temp_sum <- 
   catch_data_final |>
@@ -325,47 +326,32 @@ temp_sum |>
        y = "Median Temperature (°C)")
 
 ```
-# Interpretation
+### Interpretation
 Median temperature is highest in the upstream zone, and lowest in the downstream zone (excluding the marine zone). This is consistent with our expectations for an estuarine system, where water temperature typically increases as you move upstream from the ocean. However, the differences in temperature across the zones are not as pronounced as those for salinity, and the standard deviations are relatively large (range: 0.8-1.2 °C), indicating high variability in temperature within each zone.
 
 Because temperature and turbidity are not as strongly differentiated across the zones as salinity, I will focus on salinity as my main environmental variable of interest in my subsequent analyses and visualisations (though I will keep in mind the differences in turbidity and temperature across the zones, which could also be influencing fish abundance patterns).
 
-#### Publish-ready figures
-```{r}
-#| fig-cap: "Figure 4.  Median Salinity of the Ross River Estuary System, Townsville, QLD, Australia, by Zone with Standard Deviation Error Bars. Data from May 2026"
-#| fig-height: 6
-#| fig-width: 8
-
-sal_sum |> 
-  ggplot(aes(x = zone, y = median_salinity)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = median_salinity - sd_salinity, ymax = median_salinity + sd_salinity), width = 0.2) +
-  marine_theme +
-  labs(
-       x = "Zone",
-       y = "Median Salinity (ppt)")
-  
-```
-
-# Fish abundance
-
-# Calculate summary stats 
-```{r}
-fish_stats <- catch_data_final |>
+# Fish abundance and summary stats
+```{r Statistical Summary Table}
+#| table: "Table 1. Summary statistics for fish abundance (mean catch per day) and salinity (mean salinity) by zone and species."
+Final_stats <- catch_data_final |>
   group_by(zone, scientific_name) |>
   summarise(
     mean_catch = mean(count),
+    sd_catch = sd(count),
     sem_catch = sd(count) / sqrt(n()),
+    mean_salinity = mean(mean_salinity),
+    sd_salinity = sd(mean_salinity),
     .groups = "drop"
   )
-fish_stats
+Final_stats
+
 ```
 
-# Visualization
+# Final Figure
 
-```{r}
+```{r Multi-panel plot (faceted by species)}
 #| fig-cap: "Figure 5. Predatory Fish Abundance across Estuarine Salinity Gradients in the Ross River Estuary System, Townsville, QLD, Australia, May 2026. Mean abundance (n day^-1) with standard error bars for each species across the three zones (downstream, midstream, upstream). Points represent individual survey counts (n = 30 per species per zone)."
-#| subtitle: "The y-axis is on a log scale to better visualize the differences in abundance across species and zones."
 #| fig-height: 6
 #| fig-width: 10
 
@@ -383,7 +369,7 @@ earth_cols_dark <- c(
 "#365765"
 )
 
-fish_stats |> 
+Final_stats |> 
   ggplot(aes(x = zone, 
              y = mean_catch, 
              fill = scientific_name, 

@@ -1,5 +1,5 @@
 ---
-title: "R for Marine Science: Workshop 1"
+title: "R for Marine Science: Penguin Analysis"
 author: "Kendra Sturdee"
 date: today
 format:
@@ -22,7 +22,7 @@ library(palmerpenguins)
 library(here)
 ```
 
-## Body Mass Distribution 
+## Body Mass Distribution
 
 The following figure compares the distribution of body mass between penguin species and islands.
 
