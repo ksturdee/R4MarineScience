@@ -16,6 +16,7 @@
 # *.svg
 # *.tiff
 *.Rproj
+*DS_Store
 
 # Folders to ignore
 archive/

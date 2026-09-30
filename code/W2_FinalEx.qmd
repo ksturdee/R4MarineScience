@@ -1,6 +1,6 @@
 ---
-title: "R4MS Workshop 2 - Final Exercise"
-author: "Ben Cresswell"
+title: "Keystone exercise: Estuary Fish Survey (Data rescue)"
+author: "Kendra Sturdee"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
  html_document:
@@ -29,8 +29,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-Here we are going to wrangle in messy data on the Ross River estuary fish surveys and produce final clean tables and figure. We have 4 separate files that were provided to us by a former PhD student. 
-We know we have data for 4 sites, 4 species, and 30 days of sampling. We also have metadata on the sites and sensor data on the environmental conditions at each site.
+The goal of this exercise is to wrangle extremely messy data, and produce a final clean dataset and figure on the Ross River estuary fish surveys. The data are from a previous PhD student who conducted surveys over 30 days in May 2026 at four different sites along the Ross River estuary, Townsville, Queensland, Australia. The data include catch counts for four different fish species, as well as environmental data (temperature, salinity, and turbidity) collected at each site using sonde sensors.
 
 # Housekeeping
 
@@ -43,15 +42,18 @@ rm(list = ls())
 # Packages
 
 ```{r packages echo = FALSE}
-library(tidyverse) # Inc dplyr, ggplot2, lubridate etc
-library(readxl) # For reading in excel files
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(readxl)
 ```
 
 # Load files
 
 # Main dataset
 
-The catch data is split across 4 tabs in one excel file Load indivudally
+The catch data is split across 4 tabs in one excel file Load. We must load them indivudally.
 
 ```{r load-catch-1}
 catch1 <- read_excel(here::here("data/workshop2/estuary_catch_log.xlsx"), sheet = "Lower_ross")
@@ -61,14 +63,14 @@ catch4 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 4)
 ```
 
 # Inspect individual tabs
-Here we are looking for anomalies between workbooks and any variable naming issues
+Must inspect the data for missing values, discreptancies, and errors before we proceed. 
 ```{r inspect-catch-tabs}
 catch1
 catch2
 catch3
 catch4
 ```
-We definitely have var naming issues, but they look to be the same. Will check again once we have combined together
+The species names are messy but they are consistent across the four tabs. The site names are also messy and inconsistent across the four tabs.
 # Bind rows together
 ```{r bind-catch}
 catch_data <- bind_rows(catch1, catch2, catch3, catch4)
@@ -84,7 +86,7 @@ glimpse(catch_data)
 str(catch_data)
 ```
 
-Can't tell from these outputs how many levels of site and species we have. Two options: let's check those explicitly by using distinct() or can convert to factors Let's look at the distinct values first, as we might need to clean before converting to factor vars.
+From this inspection we cannot see how many sites and species we have in the dataset. We can check this by using distinct() or by converting to factors
 
 ```{r distinct-catch}
 catch_data |> 
@@ -93,33 +95,21 @@ catch_data |>
 catch_data |> 
   distinct(species)
 ```
-OK, so we have four species in there as well as four sites which look to be located at different points on the Ross River. Sites look like they correspond to select zones on the river estuary but we'll need to check this against the metadata, once loaded. We also have some issues with the site names and species names which will need to be cleaned before we can join with the metadata and taxonomic dictionary.3
-
-
-### Next steps for catch data:
-
-- Fix site names and place in reasonable order. 
-- Can decide this now or we can load the metadata and ensure consistency
-- Fix species names - to do this we'll need to make consistent and then use the taxonomic dictionary to translate to scientific names.
-
-First we'll need to load the metadata and see what that has in store for us!
-
+Now I know I have four sites, and four species. By naming convention, I can infer that the sites are located along the Ross River estuary, but I need to check this against the metadata once I load it. The species names are also messy and will need to be cleaned before I can join with the taxonomic dictionary to get scientific names.
 
 # Load metadata
 ```{r load-metadata}
 metadata <- read_csv("../data/workshop2/estuary_metadata.csv")
 ```
 
-
 # Checks
 ```{r inspect-metadata}
 head(metadata)
 glimpse(metadata)
 ```
+Sites names differ between the catch log and the metadata. The catch log has site names in the format "lower_ross", "middle_ross", "upper_ross", and "upper_ross2", while the metadata has site names in the format "Lower Ross", "Middle Ross", "Upper Ross", and "Upper Ross 2". These must be made consistent before I can join the datasets together.
 
-Site names are all over the place in the metadata too - will need to standardise in both of these tbls before we can combine them
-
-### Fix site names in data and metadata and convert character to factor variables
+### Clean and standardised site names and convert character to factor variables
 ```{r fix-site-names}
 catch_data <- catch_data |>
   mutate(
@@ -138,13 +128,12 @@ metadata <- metadata |>
   )
 ```
 
-
-# Recheck
+# Sanity check
 ```{r recheck-site-names}
 catch_data |> 
   str()
-# catch_data |> 
-#   distinct(site)
+ catch_data |> 
+   distinct(site)
 str(metadata)
 
 ```
@@ -157,7 +146,7 @@ species_dict <- read_csv("../data/workshop2/species_dictionary.csv")
 # Check
 head(species_dict)
 ```
-We'll need to check the common names in the catch log match those in the taxonomic dictionary before we do the join.
+Must reference common names in catch log to those in the taxonomic dictionary before we do a join.
 
 ```{r check-species-names}
 catch_data |> 
@@ -166,6 +155,8 @@ catch_data |>
 species_dict |>
   distinct(common_name)
 ```
+Only difference is between mangrove_jack and MANGROVE JACK. We can fix this by standardising the species names in the catch log to match those in the dictionary.
+
 ###  Standardise species (common name) variable in the catch log to match dictionary
 ```{r fix-species-names}
 catch_data <- catch_data |>
@@ -175,7 +166,7 @@ catch_data <- catch_data |>
   )
 ```
 
-But species name here is still actually the common name
+Still must create scientific_name variables
 
 ### Create new variable ("scientific_name") in catch log by joining with taxonomic dictionary 
 ```{r join-species-dict}
@@ -184,13 +175,11 @@ catch_data <- catch_data |>
   left_join(species_dict, by = join_by(common_name))
 ```
 
-OK so let's check our catch log again. SHould have species and site names fixed
+# Sanity check: site names + scientific names
 ```{r}
 glimpse(catch_data)
 ```
-Yep we are good.
-
-We know we need to add the metadata in, but we also have this dataset with sonde/sensor information in it
+Looks cleaner, but must still add metadata in, and must incorporate dataset with sonde/sensor data.
 
 # Load the sonde data
 (Code for this is written in separate script which we can source from here)
@@ -200,36 +189,22 @@ source(here::here("code/diw_sensor.R"))
 ```
 
 #### Notes on sensor data
-- We had 15-minute sonde data for the same 4 sites and 30 days of sampling. The script sourced above turned into daily data and removed outliers
-- There are three different environmental vars measured: temperature, salinity, and turbidity.
-- Could investigate effects of all three on fish spp abundance or pick one? Need to think about prior research and hypotheses etc.
+Sensor data includes 15-minute sonde data for the same 4 sites and 30 days of sampling. The sourced script above turned this into daily data and removed outliers. There are three different environmental variables measured: temperature, salinity, and turbidity. We could investigate the effects of all three on fish species abundance or pick one... Let's remember that the goal of this exercise is to produce a publication-ready visualisation of the estuary's ecology.
 
+The sensor data is now in a dataframe called sensor_daily, which has the following variables: site, date, mean_temp, mean_salinity, and mean_turbidity. We can join this with the catch data and metadata to create a final dataset for analysis.
 
-### OK, now we can join catch data with metadata and sensor data
+### Join catch data with metadata and sensor data
 ```{r join-all}
 catch_data_final <- catch_data |>
   left_join(metadata, by = join_by(site == site_name)) |>
   left_join(sensor_daily, by = join_by(site, date))
 ```
 
-
-# Check
+# Sanity check
 ```{r check-final-join}
 glimpse(catch_data_final)
 ```
-OK starting to look good now!
-
-But we only have 427 rows of data - doesn't seem right.. How many should we have?
-
-4 x spp
-4 x sites
-30 surveys
-
-4*4*30
-
-480!!
-
-There are some days where there were zero counts of certain species at different sites. We'll need to wrangle these into a complete dataset with 480 rows, where the zero counts are explicitly represented as 0 rather than NA. This is important for our subsequent analyses and visualisations, as we want to be able to distinguish between true absences (0) and missing data (NA).
+At first glance it looks good. However, note that there are only 427 rows of data. This is less than the expected 480 rows (4 species x 4 sites x 30 surveys). This discrepancy is likely due to some days where there were zero counts of certain species at different sites. We need to wrangle these into a complete dataset with 480 rows, where the zero counts are explicitly represented as 0 rather than NA. This is important for our subsequent analyses and visualisations, as we want to be able to distinguish between true absences (0) and missing data (NA)
 
 # Wrangle final dataset
 
@@ -246,15 +221,10 @@ catch_data_final |>
     # Convert the resulting NA counts to 0
     count = coalesce(count, 0)
   )
+
+catch_data_final
 ```
-
-
-
-# ======== MAIN DATA WRANGLE DONE!! ========
-
-## Now we can start thinking about hypotheses and what might be going on in the ecology of these species in this ecosystem
-
-### First we probably want to first check that there is an actual difference in env vars among zones
+Perfect, we now have 480 rows. Now, we can shift gears and start thinking about how we want to analyze and interpret this data. We can start by looking at the environmental variables (salinity, turbidity, temperature) across the different zones (downstream, midstream, upstream), and then we can look at the fish abundance patterns across these zones.
 
 #### Salinity
 ```{r}
