@@ -228,32 +228,47 @@ Perfect, we now have 480 rows. Now, we can shift gears and start thinking about 
 
 #### Salinity
 ```{r}
-# Let's make a table
+# Table
 sal_sum <- 
   catch_data_final |>
   group_by(zone) |>
   summarise(
-   # sem_salinity = sd(mean_salinity) / sqrt(n()),
+   sem_salinity = sd(mean_salinity) / sqrt(n()),
     sd_salinity = sd(mean_salinity, na.rm = TRUE),
     median_salinity = median(mean_salinity, na.rm = TRUE),
+   mean_salinity = mean(mean_salinity, na.rm = TRUE),
     .groups = "drop"
   )
+sal_sum
 
-# And from this a plot
+# Create a figure theme to use for all figures for consistency and professionalism
+marine_theme <- theme_classic() +
+theme(
+text = element_text(size = 14, colour = "black"),
+axis.title = element_text(size = 14, face = "bold"),
+axis.text = element_text(size = 12),
+plot.title = element_text(size = 16, face = "bold"),
+plot.subtitle = element_text(size = 13),
+legend.title = element_text(size = 13),
+legend.text = element_text(size = 12)
+)
+
+#| fig-cap: "Figure 1. Median Salinity by Zone with Standard Deviation Error Bars"
+#| subtitle: "Data from May 2026, Ross River Estuary System, Townsville, QLD, Australia"
+#| fig-height: 6
+#| fig-width: 8
+# Visualize
 sal_sum |> 
   ggplot(aes(x = zone, y = median_salinity)) +
   geom_point() +
   geom_errorbar(aes(ymin = median_salinity - sd_salinity, ymax = median_salinity + sd_salinity), width = 0.2) +
-  theme_minimal() +
+  marine_theme +
   labs(#title = "Median Salinity by Zone with Standard Deviation Error Bars",
        x = "Zone",
        y = "Median Salinity (ppt)")
 ```
-
-
-Definitely differences in salinity, as we'd expect!! And we know there has been work on some of these species about responses to salinity gradients.
-
-Let's check the other two env vars too, just to be sure.
+# Interpretation
+There is a clear difference in salinity across the zones, with the downstream zone having the highest salinity, and the upstream zone having the lowest. This is consistent with our expectations for an estuarine system, where salinity typically decreases as you move upstream from the ocean.
 
 ### Turbidity
 ```{r}
@@ -263,21 +278,28 @@ turb_sum <-
   summarise(
     sd_turbidity = sd(mean_turbidity, na.rm = TRUE),
     median_turbidity = median(mean_turbidity, na.rm = TRUE),
+    mean_turbidity = mean(mean_turbidity, na.rm = TRUE),
     .groups = "drop"
   )
 
+#| fig-cap: "Figure 2. Median Turbidity by Zone with Standard Deviation Error Bars"
+#| subtitle: "Data from May 2026, Ross River Estuary System, Townsville, QLD, Australia"
+#| fig-height: 6
+#| fig-width: 8
 turb_sum |>
   ggplot(aes(x = zone, y = median_turbidity)) +
   geom_point() +
   geom_errorbar(aes(ymin = median_turbidity - sd_turbidity, ymax = median_turbidity + sd_turbidity), width = 0.2) +
-  theme_minimal() +
-  labs(#title = "Median Turbidity by Zone with Standard Deviation Error Bars",
+  marine_theme +
+  labs(
        x = "Zone",
        y = "Median Turbidity (NTU)")
 ```
+# Interpretation
+Median turbidity is highest in the midstream zone, and lowest in the downstream zone. This could be due to a number of factors, including sediment input from upstream sources, or differences in water flow and mixing across the zones. However overall, the differences in turbidity across the zones are not as pronounced as those for salinity, and the standard deviations are relatively large (range: 2.1-4.8 NTU), indicating high variability in turbidity within each zone.
 
 
-### And temperature
+### Temperature
 ```{r}
 temp_sum <- 
   catch_data_final |>
@@ -285,41 +307,47 @@ temp_sum <-
   summarise(
     sd_temperature = sd(mean_temp, na.rm = TRUE),
     median_temperature = median(mean_temp, na.rm = TRUE),
+    mean_temperature = mean(mean_temp, na.rm = TRUE),
     .groups = "drop"
   )
 
+#| fig-cap: "Figure 3. Median Temperature by Zone with Standard Deviation Error Bars"
+#| subtitle: "Data from May 2026, Ross River Estuary System, Townsville, QLD, Australia"
+#| fig-height: 6
+#| fig-width: 8
 temp_sum |>
   ggplot(aes(x = zone, y = median_temperature)) +
   geom_point() +
   geom_errorbar(aes(ymin = median_temperature - sd_temperature, ymax = median_temperature + sd_temperature), width = 0.2) +
-  theme_minimal() +
-  labs(#title = "Median Temperature by Zone with Standard Deviation Error Bars",
+  marine_theme +
+  labs(
        x = "Zone",
        y = "Median Temperature (°C)")
 
 ```
+# Interpretation
+Median temperature is highest in the upstream zone, and lowest in the downstream zone (excluding the marine zone). This is consistent with our expectations for an estuarine system, where water temperature typically increases as you move upstream from the ocean. However, the differences in temperature across the zones are not as pronounced as those for salinity, and the standard deviations are relatively large (range: 0.8-1.2 °C), indicating high variability in temperature within each zone.
 
+Because temperature and turbidity are not as strongly differentiated across the zones as salinity, I will focus on salinity as my main environmental variable of interest in my subsequent analyses and visualisations (though I will keep in mind the differences in turbidity and temperature across the zones, which could also be influencing fish abundance patterns).
 
-OK so we'll continue with salinity as our main env var of interest, but we know that there are also differences in turbidity and temperature across the zones, which could also be influencing fish abundance patterns. We can discuss this in the interpretation of our results and consider potential confounding effects of these other environmental variables in our discussion.
-
-
-#### Remake salinity plot nicely for publication
+#### Publish-ready figures
 ```{r}
-#| fig-cap: "Salinity Gradient across zones. Ross River Estuary System, Townsville, NQ, Australia May 2026."
+#| fig-cap: "Figure 4.  Median Salinity of the Ross River Estuary System, Townsville, QLD, Australia, by Zone with Standard Deviation Error Bars. Data from May 2026"
+#| fig-height: 6
+#| fig-width: 8
 
 sal_sum |> 
   ggplot(aes(x = zone, y = median_salinity)) +
   geom_point() +
   geom_errorbar(aes(ymin = median_salinity - sd_salinity, ymax = median_salinity + sd_salinity), width = 0.2) +
-  theme_minimal() +
-  labs(#title = "Median Salinity by Zone with Standard Deviation Error Bars",
+  marine_theme +
+  labs(
        x = "Zone",
        y = "Median Salinity (ppt)")
   
 ```
 
-# Now we can turn to patterns in fish abundance
-
+# Fish abundance
 
 # Calculate summary stats 
 ```{r}
@@ -330,31 +358,65 @@ fish_stats <- catch_data_final |>
     sem_catch = sd(count) / sqrt(n()),
     .groups = "drop"
   )
+fish_stats
 ```
 
-# And plot
+# Visualization
 
 ```{r}
+earth_cols <- c(
+"#D8B365", # sand
+"#8C6D46", # brown
+"#5A7D5A", # sage
+"#4F7A8A" # muted blue-grey
+)
+
+earth_cols_dark <- c(
+"#B08E45",
+"#6B5231",
+"#416041",
+"#365765"
+)
+
+
+#| fig-cap: "Figure 5. Predatory Fish Abundance across Estuarine Salinity Gradients in the Ross River Estuary System, Townsville, QLD, Australia, May 2026. Mean abundance (n day^-1) with standard error bars for each species across the three zones (downstream, midstream, upstream). Points represent individual survey counts (n = 30 per species per zone)."
+#| subtitle: "The y-axis is on a log scale to better visualize the differences in abundance across species and zones."
+#| fig-height: 6
+#| fig-width: 10
 fish_stats |> 
-  ggplot(aes(x = zone, y = mean_catch, fill = scientific_name)) +
+  ggplot(aes(x = zone, 
+             y = mean_catch, 
+             fill = scientific_name, 
+             colour = scientific_name)) +
   geom_line(group = 1) +
   # add in points from master data
-  geom_point(data = catch_data_final, aes(x = zone, y = count),
-             position = position_jitter(width = 0.2), alpha = 0.2, size = 1, inherit.aes = FALSE) + 
-  geom_point(position = "dodge", size = 4, pch = 23) +
+  geom_point(
+    data = catch_data_final, 
+    aes(x = zone, 
+        y = count, 
+        colour = scientific_name),
+    position = position_jitter(width = 0.2), 
+    alpha = 0.4, 
+    size = 1.5, 
+    inherit.aes = FALSE) + 
+  geom_point(
+    position = "dodge", 
+    size = 5, 
+    pch = 23,
+    colour = "black") +
+  scale_fill_manual(values = earth_cols) +
+  scale_colour_manual(values = earth_cols_dark) +
   # SE pretty narrow, potentially not worth plotting but let's viewer see that included
   geom_errorbar(aes(ymin = mean_catch - sem_catch, ymax = mean_catch + sem_catch), 
                 position = position_dodge(0.9), width = 0.2) + 
   facet_wrap(~ scientific_name, scales = "fixed") +
-  theme_minimal() +
+  marine_theme +
   theme(
-    strip.text = element_text(face = "italic", size = 10, colour = "grey20"), # spp names in italic
+    strip.text = element_text(face = "italic", size = 12, colour = "black"), # spp names in italic
    # legend.position = "bottom"
     legend.position = "none" # legend unnecessary
   ) +
   labs(
-    #title = "Predatory Fish Abundance across Estuarine Salinity Gradients", # default ggplot title appears on top
-    #subtitle = "Ross River Estuary System, May 2026",
     x = "Spatial Zone",
     # scientific label for y axis of n day -1 use regex to get superscript
     y = expression("Abundance (n day"^-1*")"),
