@@ -41,7 +41,7 @@ rm(list = ls())
 
 # Packages
 
-```{r packages echo = FALSE}
+```{r packages}
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
@@ -364,6 +364,11 @@ fish_stats
 # Visualization
 
 ```{r}
+#| fig-cap: "Figure 5. Predatory Fish Abundance across Estuarine Salinity Gradients in the Ross River Estuary System, Townsville, QLD, Australia, May 2026. Mean abundance (n day^-1) with standard error bars for each species across the three zones (downstream, midstream, upstream). Points represent individual survey counts (n = 30 per species per zone)."
+#| subtitle: "The y-axis is on a log scale to better visualize the differences in abundance across species and zones."
+#| fig-height: 6
+#| fig-width: 10
+
 earth_cols <- c(
 "#D8B365", # sand
 "#8C6D46", # brown
@@ -378,11 +383,6 @@ earth_cols_dark <- c(
 "#365765"
 )
 
-
-#| fig-cap: "Figure 5. Predatory Fish Abundance across Estuarine Salinity Gradients in the Ross River Estuary System, Townsville, QLD, Australia, May 2026. Mean abundance (n day^-1) with standard error bars for each species across the three zones (downstream, midstream, upstream). Points represent individual survey counts (n = 30 per species per zone)."
-#| subtitle: "The y-axis is on a log scale to better visualize the differences in abundance across species and zones."
-#| fig-height: 6
-#| fig-width: 10
 fish_stats |> 
   ggplot(aes(x = zone, 
              y = mean_catch, 
