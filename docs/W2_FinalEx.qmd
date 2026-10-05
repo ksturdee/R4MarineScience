@@ -37,7 +37,7 @@ fig.align = "center"
 
 The goal of this exercise is to wrangle extremely messy data, and produce a final clean dataset and figure on the Ross River estuary fish surveys. The data are from a previous PhD student who conducted surveys over 30 days in May 2026 at four different sites along the Ross River estuary, Townsville, Queensland, Australia. The data include catch counts for four different fish species, as well as environmental data (temperature, salinity, and turbidity) collected at each site using sonde sensors.
 
-## Packages and housekeeping 
+## Packages and housekeeping
 
 ```{r packages and housekeeping}
 
@@ -64,15 +64,18 @@ catch4 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 4)
 ```
 
 ## Inspect individual tabs
-Must inspect the data for missing values, discreptancies, and errors before we proceed. 
+
+Must inspect the data for missing values, discreptancies, and errors before we proceed.
+
 ```{r inspect-catch-tabs}
 catch1
 catch2
 catch3
 catch4
 ```
-The species names are messy but they are consistent across the four tabs. The site names are also messy and inconsistent across the four tabs.
-## Bind rows together
+
+The species names are messy but they are consistent across the four tabs. The site names are also messy and inconsistent across the four tabs. \## Bind rows together
+
 ```{r bind-catch}
 catch_data <- bind_rows(catch1, catch2, catch3, catch4)
 # Clean up the environment
@@ -80,6 +83,7 @@ rm(catch1, catch2, catch3, catch4) # Clean up the environment
 ```
 
 ## Preliminary checks
+
 ```{r inspect-catch}
 catch_data
 head(catch_data)
@@ -96,21 +100,26 @@ catch_data |>
 catch_data |> 
   distinct(species)
 ```
+
 Now I know I have four sites, and four species. By naming convention, I can infer that the sites are located along the Ross River estuary, but I need to check this against the metadata once I load it. The species names are also messy and will need to be cleaned before I can join with the taxonomic dictionary to get scientific names.
 
 ## Load metadata
+
 ```{r load-metadata}
 metadata <- read_csv("../data/workshop2/estuary_metadata.csv")
 ```
 
 ## Checks
+
 ```{r inspect-metadata}
 head(metadata)
 glimpse(metadata)
 ```
+
 Sites names differ between the catch log and the metadata. The catch log has site names in the format "lower_ross", "middle_ross", "upper_ross", and "upper_ross2", while the metadata has site names in the format "Lower Ross", "Middle Ross", "Upper Ross", and "Upper Ross 2". These must be made consistent before I can join the datasets together.
 
 ### Clean and standardised site names and convert character to factor variables
+
 ```{r fix-site-names}
 catch_data <- catch_data |>
   mutate(
@@ -130,6 +139,7 @@ metadata <- metadata |>
 ```
 
 ## Sanity check
+
 ```{r recheck-site-names}
 catch_data |> 
   str()
@@ -138,15 +148,17 @@ catch_data |>
 str(metadata)
 
 ```
-OK site names fixed in both now (but note the vars themselves still have different names - site vs site_name). We can fix this when we join the datasets together.
-Next we need to do something about the species names. Can use the taxonomic dictionary to get scientific names for the species. 
 
-###  Load Taxonomic Dictionary
+OK site names fixed in both now (but note the vars themselves still have different names - site vs site_name). We can fix this when we join the datasets together. Next we need to do something about the species names. Can use the taxonomic dictionary to get scientific names for the species.
+
+### Load Taxonomic Dictionary
+
 ```{r load-species-dict}
 species_dict <- read_csv("../data/workshop2/species_dictionary.csv")
 # Check
 head(species_dict)
 ```
+
 Must reference common names in catch log to those in the taxonomic dictionary before we do a join.
 
 ```{r check-species-names}
@@ -156,9 +168,11 @@ catch_data |>
 species_dict |>
   distinct(common_name)
 ```
+
 Only difference is between mangrove_jack and MANGROVE JACK. We can fix this by standardising the species names in the catch log to match those in the dictionary.
 
-###  Standardise species (common name) variable in the catch log to match dictionary
+### Standardise species (common name) variable in the catch log to match dictionary
+
 ```{r fix-species-names}
 catch_data <- catch_data |>
   mutate(
@@ -169,7 +183,8 @@ catch_data <- catch_data |>
 
 Still must create scientific_name variables
 
-### Create new variable ("scientific_name") in catch log by joining with taxonomic dictionary 
+### Create new variable ("scientific_name") in catch log by joining with taxonomic dictionary
+
 ```{r join-species-dict}
 catch_data <- catch_data |>
   mutate(common_name = species) |>
@@ -177,24 +192,30 @@ catch_data <- catch_data |>
 ```
 
 # Sanity check: site names + scientific names
+
 ```{r}
 glimpse(catch_data)
 ```
+
 Looks cleaner, but must still add metadata in, and must incorporate dataset with sonde/sensor data.
 
 ## Load the sonde data
+
 (Code for this is written in separate script which we can source from here)
+
 ```{r load-sonde}
 
 source(here::here("code/diw_sensor.R"))
 ```
 
 #### Notes on sensor data
+
 Sensor data includes 15-minute sonde data for the same 4 sites and 30 days of sampling. The sourced script above turned this into daily data and removed outliers. There are three different environmental variables measured: temperature, salinity, and turbidity. We could investigate the effects of all three on fish species abundance or pick one... Let's remember that the goal of this exercise is to produce a publication-ready visualisation of the estuary's ecology.
 
 The sensor data is now in a dataframe called sensor_daily, which has the following variables: site, date, mean_temp, mean_salinity, and mean_turbidity. We can join this with the catch data and metadata to create a final dataset for analysis.
 
 ### Join catch data with metadata and sensor data
+
 ```{r join-all}
 catch_data_final <- catch_data |>
   left_join(metadata, by = join_by(site == site_name)) |>
@@ -202,9 +223,11 @@ catch_data_final <- catch_data |>
 ```
 
 ## Sanity check
+
 ```{r check-final-join}
 glimpse(catch_data_final)
 ```
+
 At first glance it looks good. However, note that there are only 427 rows of data. This is less than the expected 480 rows (4 species x 4 sites x 30 surveys). This discrepancy is likely due to some days where there were zero counts of certain species at different sites. We need to wrangle these into a complete dataset with 480 rows, where the zero counts are explicitly represented as 0 rather than NA. This is important for our subsequent analyses and visualisations, as we want to be able to distinguish between true absences (0) and missing data (NA)
 
 # Wrangle final dataset
@@ -225,9 +248,11 @@ catch_data_final |>
 
 catch_data_final
 ```
+
 Perfect, we now have 480 rows. Now, we can shift gears and start thinking about how we want to analyze and interpret this data. We can start by looking at the environmental variables (salinity, turbidity, temperature) across the different zones (downstream, midstream, upstream), and then we can look at the fish abundance patterns across these zones.
 
 ## Salinity
+
 ```{r}
 # Table
 sal_sum <- 
@@ -268,10 +293,13 @@ sal_sum |>
        x = "Zone",
        y = "Median Salinity (ppt)")
 ```
+
 ### Interpretation
+
 There is a clear difference in salinity across the zones, with the downstream zone having the highest salinity, and the upstream zone having the lowest. This is consistent with our expectations for an estuarine system, where salinity typically decreases as you move upstream from the ocean.
 
 ## Turbidity
+
 ```{r}
 turb_sum <- 
   catch_data_final |>
@@ -296,11 +324,13 @@ turb_sum |>
        x = "Zone",
        y = "Median Turbidity (NTU)")
 ```
+
 ### Interpretation
+
 Median turbidity is highest in the midstream zone, and lowest in the downstream zone. This could be due to a number of factors, including sediment input from upstream sources, or differences in water flow and mixing across the zones. However overall, the differences in turbidity across the zones are not as pronounced as those for salinity, and the standard deviations are relatively large (range: 2.1-4.8 NTU), indicating high variability in turbidity within each zone.
 
-
 ## Temperature
+
 ```{r}
 temp_sum <- 
   catch_data_final |>
@@ -326,12 +356,15 @@ temp_sum |>
        y = "Median Temperature (°C)")
 
 ```
+
 ### Interpretation
+
 Median temperature is highest in the upstream zone, and lowest in the downstream zone (excluding the marine zone). This is consistent with our expectations for an estuarine system, where water temperature typically increases as you move upstream from the ocean. However, the differences in temperature across the zones are not as pronounced as those for salinity, and the standard deviations are relatively large (range: 0.8-1.2 °C), indicating high variability in temperature within each zone.
 
 Because temperature and turbidity are not as strongly differentiated across the zones as salinity, I will focus on salinity as my main environmental variable of interest in my subsequent analyses and visualisations (though I will keep in mind the differences in turbidity and temperature across the zones, which could also be influencing fish abundance patterns).
 
 # Fish abundance and summary stats
+
 ```{r Statistical Summary Table}
 #| table: "Table 1. Summary statistics for fish abundance (mean catch per day) and salinity (mean salinity) by zone and species."
 Final_stats <- catch_data_final |>
@@ -411,7 +444,33 @@ Final_stats |>
   )
 ```
 
+```{r}
+write_csv(
+  catch_data_final,
+  here::here(
+    "outputs",
+    "tables",
+    "workshop_02_clean_estuary_master.csv"
+  )
+)
 
+write_csv(
+  final_stats,
+  here::here(
+    "outputs",
+    "tables",
+    "workshop_02_fish_salinity_summary.csv"
+  )
+)
 
-
-
+fish_salinity_plot <- final_stats |>
+  ggplot(
+    aes(
+      x = zone,
+      y = mean_catch,
+      group = scientific_name
+    )
+  ) +
+  # remaining layers
+  NULL
+```
