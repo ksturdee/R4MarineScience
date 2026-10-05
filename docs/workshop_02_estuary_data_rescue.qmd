@@ -254,6 +254,10 @@ Perfect, we now have 480 rows. Now, we can shift gears and start thinking about 
 ## Salinity
 
 ```{r}
+#| fig-cap: "Figure 1. Median Salinity by Zone with Standard Deviation Error Bars"
+#| subtitle: "Data from May 2026, Ross River Estuary System, Townsville, QLD, Australia"
+#| fig-height: 6
+#| fig-width: 8
 # Table
 sal_sum <- 
   catch_data_final |>
@@ -279,10 +283,6 @@ legend.title = element_text(size = 13),
 legend.text = element_text(size = 12)
 )
 
-#| fig-cap: "Figure 1. Median Salinity by Zone with Standard Deviation Error Bars"
-#| subtitle: "Data from May 2026, Ross River Estuary System, Townsville, QLD, Australia"
-#| fig-height: 6
-#| fig-width: 8
 # Visualize
 sal_sum |> 
   ggplot(aes(x = zone, y = median_salinity)) +
@@ -301,6 +301,10 @@ There is a clear difference in salinity across the zones, with the downstream zo
 ## Turbidity
 
 ```{r}
+#| fig-cap: "Figure 2. Median Turbidity by Zone with Standard Deviation Error Bars"
+#| subtitle: "Data from May 2026, Ross River Estuary System, Townsville, QLD, Australia"
+#| fig-height: 6
+#| fig-width: 8
 turb_sum <- 
   catch_data_final |>
   group_by(zone) |>
@@ -311,10 +315,6 @@ turb_sum <-
     .groups = "drop"
   )
 
-#| fig-cap: "Figure 2. Median Turbidity by Zone with Standard Deviation Error Bars"
-#| subtitle: "Data from May 2026, Ross River Estuary System, Townsville, QLD, Australia"
-#| fig-height: 6
-#| fig-width: 8
 turb_sum |>
   ggplot(aes(x = zone, y = median_turbidity)) +
   geom_point() +
@@ -332,6 +332,10 @@ Median turbidity is highest in the midstream zone, and lowest in the downstream 
 ## Temperature
 
 ```{r}
+#| fig-cap: "Figure 3. Median Temperature by Zone with Standard Deviation Error Bars"
+#| subtitle: "Data from May 2026, Ross River Estuary System, Townsville, QLD, Australia"
+#| fig-height: 6
+#| fig-width: 8
 temp_sum <- 
   catch_data_final |>
   group_by(zone) |>
@@ -342,10 +346,6 @@ temp_sum <-
     .groups = "drop"
   )
 
-#| fig-cap: "Figure 3. Median Temperature by Zone with Standard Deviation Error Bars"
-#| subtitle: "Data from May 2026, Ross River Estuary System, Townsville, QLD, Australia"
-#| fig-height: 6
-#| fig-width: 8
 temp_sum |>
   ggplot(aes(x = zone, y = median_temperature)) +
   geom_point() +
@@ -449,21 +449,19 @@ write_csv(
   catch_data_final,
   here::here(
     "outputs",
-    "tables",
     "workshop_02_clean_estuary_master.csv"
   )
 )
 
 write_csv(
-  final_stats,
+  Final_stats,
   here::here(
     "outputs",
-    "tables",
     "workshop_02_fish_salinity_summary.csv"
   )
 )
 
-fish_salinity_plot <- final_stats |>
+fish_salinity_plot <- Final_stats |>
   ggplot(
     aes(
       x = zone,
