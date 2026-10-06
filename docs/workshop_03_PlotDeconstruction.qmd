@@ -22,16 +22,40 @@ editor_options:
   chunk_output_type: inline
 ---
 
-## Quarto
+## Introduction
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+In this exercise, I used acoustic telemetry data from Lake Champlain showing the movement of lake sturgeon (*Acipenser fulvescens*), lake trout (*Salvelinus namaycush*)*,* and walleye (*Sander vitreus)* across the area. The lake is heavily populated by causeways which create narrow passages and restrict fish movement; the point of the original study and dataset was to investigate whether the causeways impact fish movement, and how often fish were able to access isolated basins (and whether any patterns emerged between species or season).
 
-## Running Code
+The dataset contains detections from tagged fish recorded by an array of acoustic receivers distributed throughout the lake. The goal of this exercise is to choose a figure from the study, and reproduce its key findings in an alternate, improved style by applying data wrangling, visualization and analysis skills.
+
+```{r}
+#| echo: false
+#| fig-cap: "Original figure reproduced from Futia et al. (2026) showing the relationship between seasonal latitudinal range and causeway-crossing frequency for lake sturgeon (LKS), lake trout (LKT), and walleye (WAL) in Lake Champlain. 【1-6d6fc1】"
+
+knitr::include_graphics(
+  "../data/workshop3/lake_champlain_telemetry_rawdata/workshop_03_old_graph_screenshot.png"
+)
+```
+
+### Original Figure Reference
+
+Futia, M. H., Galinat, A., Izzo, L. K., Simard, L., & Marsden, J. E. (2026). Multi-species interactions with artificial causeways in a fragmented lake. \*Canadian Journal of Fisheries and Aquatic Sciences, 83\*, 1–19. https://doi.org/10.1139/cjfas-2025-0205
+
+### **Visual Critique**
+
+The point of this figure is to demonstrate the relationship between the seasonal latitudinal range (km) traveled by juvenile and adult members of each species. The figure also shows whether there are any significant differences between groups within each season, which are communicated using different letters. The authors also included the number of individuals in each group (at the top of each panel). Overall, the black and white theme is acceptable for professional, publication style figures, however with the amount of information that this figure is conveying, adding color to separate species would greatly improve its readability (the use of grey points makes it difficult to distinguish species groups quickly). Additionally, the figure has poor visual hierarchy and a reliance on abbreviations; LKS, LKT, and WAL make it so that the reader has to continuously refer back to the caption to interpret. Clearer abbreviations or full names may improve the figure. The statistical significance groupings also add a layer of unnecessary visual clutter above each panel and are not intuitive for all readers. Finally, the boxplots hide details of group distributions. It could be useful to explore alternative visualizations, like violin plots or raincloud plots, which could communicate the distribution of movement ranges while retaining summary statistics.
+
+Overall, I think that this figure could benefit from a colour scheme, clearer species labels, and reduced overplotting through transparency or alternative visualization methods to improve readability while retaining the same information content.
+
+## Re-working the plot
 
 When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
 
 ```{r}
-1 + 1
+#| echo: false
+
+
+
 ```
 
 You can add options to executable code like this
@@ -40,5 +64,3 @@ You can add options to executable code like this
 #| echo: false
 2 * 2
 ```
-
-The `echo: false` option disables the printing of code (only output is displayed).
