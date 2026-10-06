@@ -1,7 +1,23 @@
 ---
 title: "Queensland Fisheries Data Discovery Challenge"
-format: html
+format:
+  html:
+    toc: true
+    code-fold: false
+    embed-resources: true
+    fig-caption: true
+    theme: spacelab
+    highlight-style: textmate
+    
+execute:
+  echo: false
+  warning: false
+  message: false
+  
 editor: visual
+
+editor_options:
+  chunk_output_type: inline
 ---
 
 ```{r}
