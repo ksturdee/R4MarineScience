@@ -27,21 +27,21 @@ editor_options:
 
 Clear scientific figures should communicate both the main pattern in a dataset and the uncertainty or variation underlying that pattern. However, figures based only on group means and error bars can conceal differences among individual observations and make complex comparisons difficult to interpret.
 
-In this workshop, I examine a figure from Budge et al. (2023), \*Fatty acid isotopic composition in Atlantic pollock is not influenced by environmentally relevant dietary fat concentrations\*. This study essentially tested whether dietary fat concentration influenced the carbon isotope composition of fatty acids in Atlantic pollock (\*Pollachius virens\*). Fish were fed one of three experimental diets containing approximately 5%, 7%, or 9% lipid for 20 weeks. The authors then compared fatty-acid-specific carbon isotope values in the experimental diets and fish liver tissue.
+In this workshop, I examine a figure from Budge et al. (2023), Fatty acid isotopic composition in Atlantic pollock is not influenced by environmentally relevant dietary fat concentrations. This study essentially tested whether dietary fat concentration influenced the carbon isotope composition of fatty acids in Atlantic pollock (*Pollachius virens*). Fish were fed one of three experimental diets containing approximately 5%, 7%, or 9% lipid for 20 weeks. The authors then compared fatty-acid-specific carbon isotope values in the experimental diets and fish liver tissue.
 
 The dataset includes individual fish measurements, liver lipid content, fatty-acid composition, and fatty-acid δ¹³C values for the initial fish, experimental fish, and feeds. My goal here is to explore the underlying observations, reproduce a published figure, and develop a revised visualisation without estimating or inventing missing values.
 
-### Article details
+#### Article details
 
-\*\*Article:\*\* Budge, S. M., Townsend, K., Ziegler, S. E., and Lall, S. P. (2023). \*Fatty acid isotopic composition in Atlantic pollock is not influenced by environmentally relevant dietary fat concentrations\*. Oecologia, 202, 513–522.
+Budge, S. M., Townsend, K., Ziegler, S. E., and Lall, S. P. (2023). Fatty acid isotopic composition in Atlantic pollock is not influenced by environmentally relevant dietary fat concentrations. Oecologia, 202, 513–522.
 
-\*\*DOI:\*\* \[10.1007/s00442-023-05403-z\](https://doi.org/10.1007/s00442-023-05403-z)
+DOI: \[10.1007/s00442-023-05403-z\](https://doi.org/10.1007/s00442-023-05403-z)
 
 ## Original Figure
 
 ```{r}
 #| echo: false
-#| fig-cap: "Original Figure 2 from Budge et al. (2023) showing liver fatty-acid δ¹³C values for initial fish and three dietary treatments."
+#| fig-cap: "Figure 1. Original Figure 2 from Budge et al. (2023) showing liver fatty-acid δ¹³C values for initial fish and three dietary treatments."
 #| 
 knitr::include_graphics(
   "../data/workshop3/fatty_acid_isotope_rawdata/workshop_03_original_figure_2.png"
@@ -88,11 +88,13 @@ head(fa_d13c)
 ```
 
 ```{r}
+#| echo: false
 # Check for missing values
 colSums(is.na(fa_d13c))
 ```
 
 ```{r}
+#| echo: false
 # Render a clean table
 fa_d13c |>
   slice(1:10) |>
@@ -151,6 +153,9 @@ figure2_summary <- fa_long |>
 ```
 
 ```{r}
+#| label: fig-reconstructed-original
+#| fig-cap: "Reconstructed version of the original Figure 2 showing mean carbon isotope signatures (δ¹³C, ‰) of selected fatty acids in Atlantic pollock fed three experimental diets (Diet H, Diet L, and Diet M), together with baseline values measured in fish prior to experimental feeding. Symbols represent mean δ¹³C values for each fatty acid and diet treatment, while error bars indicate ±1 standard deviation. Fatty acids are displayed along the x-axis in the same order as presented in the original study. This reconstruction reproduces the visual structure and data presentation of the published figure for subsequent critique and redesign." 
+
 figure2_original <- ggplot(
   figure2_summary,
   aes(
