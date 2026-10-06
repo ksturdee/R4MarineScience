@@ -2,7 +2,7 @@
 title: "Queensland Fisheries Data Discovery Challenge"
 format:
   html:
-    toc: true
+    toc: false
     code-fold: false
     embed-resources: true
     fig-caption: true
