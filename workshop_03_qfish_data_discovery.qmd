@@ -1,0 +1,102 @@
+---
+title: "Queensland Fisheries Data Discovery Challenge"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(here)
+library(gt)
+```
+
+## Introduction
+
+This report explores catch records from the Queensland Shark Control Program obtained through the Queensland Fisheries QFISH Portal. The objective was to investigate how catch records have changed through time across different Queensland regions using a reproducible workflow in R.
+
+Understanding regional changes in catch records can assist fisheries managers in identifying spatial patterns, assessing long-term trends, and informing management decisions relating to Queensland's coastal shark management programs.
+
+## Data Source
+
+Data were sourced from the Queensland Fisheries QFISH Portal and downloaded as a comma-separated (.csv) file. The dataset contained records from the Queensland Shark Control Program, including information on year, month, region, species, gear type, biological characteristics, and capture outcomes.
+
+The raw dataset contained 26,391 records and 17 variables.
+
+## Data Wrangling
+
+The dataset was imported using the tidyverse package and inspected using functions such as \`glimpse()\`, \`names()\`, and \`head()\`
+
+Variables relating to time (\`Year\`), space (\`Area\`), and catch records were retained for analysis. To investigate regional trends through time, individual catch records were aggregated by year and management area. This aggregation transformed thousands of individual observations into annual catch summaries suitable for visualisation and trend analysis.
+
+## Management Question
+
+How have shark catch records changed through time across major Queensland Shark Control Program regions?
+
+## Results
+
+Figure 1 shows annual shark catch records across the six Queensland regions with the highest numbers of recorded catches in the Queensland Shark Control Program dataset. Catch records were aggregated by year and region to reveal long-term temporal trends while retaining regional differences. Most regions exhibited relatively stable catch levels through time, although Mackay and Townsville showed substantial increases in recent years. Presenting the data as faceted time-series allowed regional trends to be compared clearly without the visual clutter that would occur if all regions were displayed on a single plot.
+
+```{r}
+#| label: fig-qfish-regions
+#| fig-cap: "Annual shark catch records from the Queensland Shark Control Program across six major Queensland regions between 1996 and 2026. Individual catch records were aggregated by year and region and displayed as faceted time-series. Lines connect annual catch totals and open triangles represent yearly observations. Regional differences in catch records are evident, with particularly large increases observed in Mackay and Townsville during recent years."
+#| out-width: 100%
+#| echo: false
+
+knitr::include_graphics(
+  "outputs/workshop3/qfish_regional_trends.png"
+)
+
+```
+
+Table 1 summarises catch records across the six focal regions and highlights differences in total catches, average annual catches, and peak catch years. Townsville and Mackay recorded the highest overall catch totals during the study period.
+
+```{r}
+#| label: tbl-regional-catch-summary
+#| tbl-cap: "Summary statistics for the six Queensland regions with the highest number of recorded shark catches."
+#| echo: false
+
+CatchDataQLDGov <- read_csv(
+  here::here("data", "workshop3", "CatchDataQLDGov.csv"),
+  show_col_types = FALSE
+)
+
+annual_catch <- CatchDataQLDGov |>
+  group_by(Year, Area) |>
+  summarise(
+    catches = n(),
+    .groups = "drop"
+  )
+
+top_areas <- annual_catch |>
+  group_by(Area) |>
+  summarise(
+    total_catches = sum(catches),
+    .groups = "drop"
+  ) |>
+  arrange(desc(total_catches)) |>
+  slice_head(n = 6)
+
+top_area_trends <- annual_catch |>
+  filter(Area %in% top_areas$Area)
+
+regional_summary <- top_area_trends |>
+  group_by(Area) |>
+  summarise(
+    `Total Catches` = sum(catches),
+    `Mean Annual Catch` = mean(catches),
+    `Peak Year` = Year[which.max(catches)],
+    `Peak Catch` = max(catches),
+    .groups = "drop"
+  ) |>
+  arrange(desc(`Total Catches`))
+
+regional_summary |>
+  gt()
+```
+
+## Interpretation
+
+Substantial regional differences were observed in shark catch records across Queensland. Townsville and Mackay recorded the highest total catches and exhibited the largest annual peaks during the study period. In contrast, Cairns, Gold Coast, and Sunshine Coast North showed comparatively stable catch levels through time. Temporal trends were not consistent among regions, indicating that catch patterns vary spatially across Queensland. These results demonstrate the value of aggregating fisheries data across both time and space to identify regional trends that may warrant further investigation by fisheries managers.
