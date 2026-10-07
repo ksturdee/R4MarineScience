@@ -6,7 +6,290 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
+
+# Load into R Library
+library(tidyverse)
+library(sf)
+library(terra)
+library(leaflet)
+library(tmap)
+library(dichromat)
+library(here)
+
+# load copepode data 
+dat <- read_csv(here("data", "workshop4", "copepods_raw.csv")) 
+dat
+```
+
+silk_id shows the unique identifier for each copepod sample, while the other columns provide information about the sampling location, date, and various environmental parameters measured at the time of collection.
+
+For processing, silks are divided into segments based on the `silk_id`. Each segment represents a unique sampling event, and the data can be grouped accordingly for analysis.
+
+Check coordinate reference system (CRS) of the copepod data. The coordinates are in decimal degrees, which is a common format for geographic data.
+
+```{r}
+st_crs(dat)
+```
+
+## Data exploration
+
+Check coordinates
+
+```{r}
+ggplot(dat) + 
+  aes(x = longitude, y = latitude, color = richness_raw) +
+  geom_point()
+```
+
+## Check other patterns in the data
+Visualise species richness in a non-spatial way
+
+```{r}
+ggplot(dat, aes(x = latitude, y = richness_raw)) +
+  stat_smooth() +
+  geom_point()
+  labs(x = "Latitude", y = "Species Richness") +
+  theme_minimal()
+```
+
+From this we can see there is an unatural change in the data pattern at around latitude -44. 
+
+Do the same thing with longitude
+```{r}
+ggplot(dat, aes(x = longitude, y = richness_raw)) +
+  stat_smooth() +
+  geom_point() +
+  labs(x = "Longitude", y = "Species Richness") +
+  theme_minimal()
+```
+
+```{r}
+# Build a simple summary table to summarise the variables in the dataset
+
+overview <- dat %>%
+  summarise(
+    n_samples = n(),
+    n_unique_silk_id = n_distinct(silk_id),
+    min_latitude = min(latitude, na.rm = TRUE),
+    max_latitude = max(latitude, na.rm = TRUE),
+    min_longitude = min(longitude, na.rm = TRUE),
+    max_longitude = max(longitude, na.rm = TRUE),
+    mean_richness_raw = mean(richness_raw, na.rm = TRUE),
+    sd_richness_raw = sd(richness_raw, na.rm = TRUE)
+  )
+overview
+```
+
+## Maps
+
+```{r}
+# Convert point data into spatially referenced data using sf package
+
+sdat <- st_as_sf(
+dat,
+coords = c("longitude", "latitude"),
+crs = 4326
+)
+
+sdat
+```
+```{r include = FALSE}
+
+crs5126 <- st_crs(5126)
+crs5126 # look at the whole CRS
+crs5126$Name # pull out just the name of the crs
+
+crs5126$wkt # pull out the whole WKT of the crs
+```
+
+Must decide how to project the data. Projections are defined by a projected coordinate reference system (CRS) that transforms the curved surface of the Earth into a flat plane. The choice of projection can affect the accuracy and interpretation of spatial data, especially for analyses involving distances, areas, and spatial relationships.
+
+```{r}
+sdat
+```
+
+## Cartography
+
+```{r}
+plot(sdat["richness_raw"])
+```
+Here we have only plotted the richness column. If we used plot(sdat) it would create a panel for every variable in our dataframe. In sf, we can use square brackets ["richness_raw"] to select a single variable.
+
+# Thematic maps for communication
+
+```{r}
+# use tmap to create a basic map
+
+tm_shape(sdat) + 
+  tm_dots(col = "richness_raw")
+```
+```{r}
+# Improve color scheme and aesthetics of the map
+
+tm1 <- tm_shape(sdat) + 
+  tm_dots(col = "richness_raw", 
+          palette = "-Blues", 
+          size = 0.3, 
+          alpha = 0.7) 
+
+tm1
+
+# Save image to outputs
+tmap_save(tm1, filename = here("outputs/workshop4", "Richness-map.png"), 
+          width = 3000, height = 3000)
+
+```
+
+## Mapping spatial polygons as layers
+
+We will load in a map of Australia and a map of Australia’s continental shelf using tmap to add these layers.
+
+```{r}
+aus <- st_read(
+  here("data", "workshop4", "spatial-data", "Aussie", "Aussie.shp")
+)
+
+shelf <- st_read(
+  here("data", "workshop4", "spatial-data", "aus_shelf", "aus_shelf.shp")
+)
+
+aus
+
+shelf
+```
+## Mapping polygons
+```{r}
+tm_shape(shelf, bbox = sdat) +
+  tm_polygons(col = "lightblue") +
+  tm_shape(aus) +
+  tm_polygons(col = "gray") +
+  tm_shape(sdat) +
+  tm_dots()
+```
+```{r}
+# Map style 
+tmap_style("white")
+
+tm2 <- tm_shape(shelf, bbox = sdat) +
+  tm_polygons(col = "lightblue") +
+  tm_shape(aus) +
+  tm_polygons(col = "grey85") +
+  tm_shape(sdat) +
+  tm_dots(
+    col = "richness_raw",
+    palette = "-YlGnBu",
+    size = 0.1
+  ) +
+  tm_layout(
+    legend.position = c("left", "top"),
+    frame = TRUE
+  )
+
+tm2
+
+tm2 <- tmap_save(tm2, filename = here("outputs/workshop4", "Richness-map-aus-shelf.png"), 
+          width = 3000, height = 3000)
+
+```
+
+## tmp vignette
+```{r}
+vignette('tmap-getstarted')
+
+tmap_mode("view")
+
+data("World")
+tm_shape(World) +
+  tm_polygons("HPI")
+```
+```{r}
+data(World, metro, rivers, land)
+
+tmap_mode("plot")
+
+tm_shape(land) +
+  tm_raster("elevation", palette = terrain.colors(10)) +
+tm_shape(World) +
+    tm_borders("white", lwd = .5) +
+    tm_text("iso_a3", size = "AREA") +
+tm_shape(metro) +
+    tm_symbols(col = "red", size = "pop2020", scale = .5) +
+tm_legend(show = FALSE)
+```
+## Facets
+```{r}
+tmap_mode("view")
+tm_shape(World) +
+    tm_polygons(c("HPI", "economy")) +
+    tm_facets(sync = TRUE, ncol = 2)
+```
+```{r}
+tmap_mode("plot")
+## tmap mode set to plotting
+
+data(NLD_muni)
+
+NLD_muni$perc_men <- NLD_muni$pop_men / NLD_muni$population * 100
+
+tm_shape(NLD_muni) +
+    tm_polygons("perc_men", palette = "RdYlBu") +
+    tm_facets(by = "province")
+```
+```{r}
+tmap_mode("plot")
+## tmap mode set to plotting
+
+data(NLD_muni)
+tm1 <- tm_shape(NLD_muni) + tm_polygons("population", convert2density = TRUE)
+tm2 <- tm_shape(NLD_muni) + tm_bubbles(size = "population")
+
+tmap_arrange(tm1, tm2)
+```
+## Style
+```{r}
+tmap_mode("plot")
+## tmap mode set to plotting
+
+tm_shape(World) +
+    tm_polygons("HPI") +
+tm_layout(bg.color = "skyblue", inner.margins = c(0, .02, .02, .02))
+```
+## Setting options
+```{r}
+tmap_options(bg.color = "black", legend.text.color = "white")
+
+tm_shape(World) +
+    tm_polygons("HPI", legend.title = "Happy Planet Index")
+
+```
+```{r}
+tmap_style("classic")
+## tmap style set to "classic"
+## other available styles are: "white", "gray", "natural", "cobalt", "col_blind", "albatross", "beaver", "bw", "watercolor"
+
+tm_shape(World) +
+    tm_polygons("HPI", legend.title = "Happy Planet Index")
+
+tmap_options_reset()
+```
+## Exporting
+```{r}
+tm3 <- tm_shape(World) +
+    tm_polygons("HPI", legend.title = "Happy Planet Index")
+
+## save an image ("plot" mode)
+tmap_save(tm3, filename = here("outputs/workshop4","vignette_world_map.png"),          width = 3000, height = 3000)
+```
+```{r}
+tmap_save(tm3, filename = here("outputs/workshop4","vignette_world_map.html"))
+```
+## Quick Thematic Map
+```{r}
+qtm(World, fill = "HPI", fill.palette = "RdYlGn")
+```
+```{r}
+tmap_tip()
 ```
 
 
