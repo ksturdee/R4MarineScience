@@ -20,7 +20,6 @@
 
 # Folders to ignore
 archive/
-outputs
 
 # Keywords to ignore
 *archive
