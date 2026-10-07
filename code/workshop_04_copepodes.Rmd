@@ -1,0 +1,12 @@
+---
+title: "workshop_04_copepodes"
+author: "Kendra"
+date: "2026-10-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
