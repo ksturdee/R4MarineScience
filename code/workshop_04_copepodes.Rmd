@@ -18,7 +18,7 @@ library(dichromat)
 library(here)
 
 # load copepode data 
-dat <- read_csv(here("data", "workshop4", "copepods_raw.csv")) 
+dat <- read_csv(here("data", "workshop4","copepods", "copepods_raw.csv")) 
 dat
 ```
 
@@ -147,11 +147,11 @@ We will load in a map of Australia and a map of Australia’s continental shelf 
 
 ```{r}
 aus <- st_read(
-  here("data", "workshop4", "spatial-data", "Aussie", "Aussie.shp")
+  here("data", "workshop4", "copepods","spatial-data", "Aussie", "Aussie.shp")
 )
 
 shelf <- st_read(
-  here("data", "workshop4", "spatial-data", "aus_shelf", "aus_shelf.shp")
+  here("data", "workshop4", "copepods", "spatial-data", "aus_shelf", "aus_shelf.shp")
 )
 
 aus
@@ -291,5 +291,535 @@ qtm(World, fill = "HPI", fill.palette = "RdYlGn")
 ```{r}
 tmap_tip()
 ```
+
+
+## Tutorial with data for tmap ##
+
+Load data and packages for this tutorial
+```{r}
+# for loading our data
+library(raster)
+library(readr)
+library(readxl)
+library(sf)
+# for datasets
+library(maps)
+library(spData)
+# for creating animations
+library(magick)
+# for plotting
+library(grid)
+library(tmap)
+library(viridis)
+```
+
+
+
+
+```{r}
+# load shapefile for bavaria
+bavaria <- read_sf(
+  here("data", "workshop4", "chapter2", "bavaria.shp")
+)
+
+# nicer colnames
+colnames(bavaria) <- c(
+  "place", "type", "gdp_per_capita", "mean_age",
+  "pop_density", "unemployment_rate",
+  "employment_rate", "household_income",
+  "students", "pop_development", "geometry")
+
+  
+# load raster file for europe
+europe_raster <- raster(
+  here("data", "workshop4", "chapter2", "elevation1x1_new.tif")
+)
+
+# load shapefile for world
+world_shape <- read_sf(
+  here("data", "workshop4", "chapter2", "ne_50m_admin_0_countries.shp")
+)
+
+# keep only europe
+europe_shape <- world_shape[
+  world_shape$CONTINENT == "Europe", ]
+
+# keep only cities with at least 1 million inhabitants
+cities <- world.cities[world.cities$pop >= 1000000, ]
+
+# turn it into an sf object
+cities <- cities %>%
+  st_as_sf(coords = c("long", "lat"), crs = 4326) %>%
+  st_cast("POINT")
+
+# keep only cities that are in europe
+cities <- st_intersection(cities, st_union(europe_shape))
+
+# turn europe into a MULTILINESTRING
+europe_shape <- st_cast(europe_shape, "MULTILINESTRING")
+
+# load german municipalities
+communities <- read_sf(
+  here("data", "workshop4", "chapter2", "gmd_ex.shp")
+)
+
+# keep only Rosenheim
+rosenheim <- communities[
+  communities$BEZ_KRS == "Rosenheim", ]
+
+# load honey production data
+honey_csv <- read_csv(
+  here("data", "workshop4", "chapter2", "honeyproduction.csv")
+)
+colnames(honey_sf)[3:8] <- c(
+  "Number_of_colonies", "Yield_per_colony",
+  "Total_production", "Stocks","Price_per_lb",
+  "Value_of_production"
+  )
+
+# load state abbreviations
+abbrev <- read_xlsx(
+  here("data", "workshop4", "chapter2", "abbrev.xlsx")
+)
+
+# load honey shapefile
+honey_sf <- read_sf(
+  here("data", "workshop4", "chapter2", "honey.shp")
+)
+```
+## Static maps with tmap
+```{r}
+tm_shape(bavaria) +
+  tm_fill()
+tm_shape(bavaria) +
+  tm_borders()
+tm_shape(bavaria) +
+  tm_polygons()
+
+# save map as an object
+
+map_europe <- tm_shape(europe_raster) +
+  tm_raster()
+class(map_europe)
+```
+
+
+# Use of several layers
+```{r}
+map_europe2 <- map_europe +
+  tm_shape(europe_shape) +
+  tm_lines(alpha = 0.3)
+map_europe3 <- map_europe2  +
+  tm_shape(cities) +
+  tm_dots(size = 0.3)
+
+map_europe2
+map_europe3
+```
+
+
+## Use of various arguments
+```{r message=FALSE, warning=FALSE}
+bav1 <- tm_shape(bavaria) +
+  tm_fill(col = "aquamarine")
+bav2 <- tm_shape(bavaria) +
+  tm_fill(col = "aquamarine", alpha = 0.5)
+bav3 <- tm_shape(bavaria) +
+  tm_polygons(col = "aquamarine", border.col = "darkolivegreen")
+bav4 <- tm_shape(bavaria) +
+  tm_borders(lwd = 2)
+bav5 <- tm_shape(bavaria) +
+  tm_borders(lty = 4)
+bav6 <- tm_shape(bavaria) +
+  tm_polygons(col = "#E2E2E2", border.alpha = 0.5, lwd = 3)
+all_bavs <- tmap_arrange(bav1, bav1, bav3, bav4, bav5, bav6, ncol = 3)
+
+all_bavs
+```
+
+```{r}
+tm_shape(bavaria) +
+  tm_polygons(col = "pop_development", midpoint = 0)
+```
+
+```{r}
+tm_shape(bavaria) +
+  tm_polygons(col = "mean_age")
+tm_shape(bavaria) +
+  tm_polygons(col = "mean_age", breaks = c(40, 42, 46, 54))
+tm_shape(bavaria) +
+  tm_polygons(col = "mean_age", n = 3)
+```
+
+```{r}
+tm_shape(bavaria) +
+  tm_polygons(col = "unemployment_rate", palette = "viridis")
+tm_shape(bavaria) +
+  tm_polygons(col = "unemployment_rate", palette = "-viridis")
+```
+
+
+
+Map of Bavaria with additional elements
+
+```{r}
+tm_shape(bavaria) +
+  tm_polygons() +
+  tm_layout(title = "Bavaria", bg.color = "#228B22")
+tm_shape(bavaria) +
+  tm_polygons() +
+  tm_layout(scale = 3, frame = FALSE)
+tm_shape(bavaria) +
+  tm_polygons(col = "type") +
+  tm_layout(frame.lwd = 3, legend.position = c("left", "bottom"))
+tm_shape(bavaria) +
+  tm_polygons(col = "type") +
+  tm_layout(inner.margins = 0.2, legend.show = FALSE)
+```
+
+Some layout settings
+
+```{r}
+tm_shape(bavaria) +
+  tm_polygons() +
+  tm_layout(title = "Bavaria", bg.color = "#228B22")
+tm_shape(bavaria) +
+  tm_polygons() +
+  tm_layout(scale = 3, frame = FALSE)
+tm_shape(bavaria) +
+  tm_polygons(col = "type") +
+  tm_layout(frame.lwd = 3, legend.position = c("left", "bottom"))
+tm_shape(bavaria) +
+  tm_polygons(col = "type") +
+  tm_layout(inner.margins = 0.2, legend.show = FALSE)
+```
+
+Classic and color-blind style
+```{r}
+tm_shape(bavaria) +
+  tm_polygons(col = "type") +
+  tm_style("classic")
+tm_shape(bavaria) +
+  tm_polygons(col = "type") +
+  tm_style("col_blind")
+```
+
+```{r}
+us_states2163 <- st_transform(us_states, 2163)
+
+us_states_range <- st_bbox(us_states2163)[4] - st_bbox(us_states2163)[2]
+hawaii_range <- st_bbox(hawaii)[4] - st_bbox(hawaii)[2]
+alaska_range <- st_bbox(alaska)[4] - st_bbox(alaska)[2]
+us_states_hawaii_ratio <- hawaii_range / us_states_range
+us_states_alaska_ratio <- alaska_range / us_states_range
+```
+
+```{r}
+us_states_map <- tm_shape(us_states2163) +
+  tm_polygons(
+    col = "total_pop_15",
+    breaks = c(
+      0, 5000000, 10000000, 15000000, 20000000,
+      25000000, 30000000, 35000000, 40000000
+      ),
+    title = "Population 2015 in millions",
+    pal = c("#E1F5C4", "#EDE574", "#F9D423", "#FC913A", "#FF4E50"),
+    labels = c(
+      "0-5", "5-10", "10-15", "15-20", "20-25",
+      "25-30", "30-35", "35-40"
+      ),
+    legend.is.portrait = FALSE) +
+  tm_layout(
+    frame = FALSE,
+    legend.outside = TRUE,
+    legend.outside.position = "bottom"
+    )
+hawaii_map <- tm_shape(hawaii) +
+  tm_polygons(
+    col = "total_pop_15",
+    breaks = c(
+      0, 5000000, 10000000, 15000000, 20000000,
+      25000000, 30000000, 35000000, 40000000
+      ),
+    pal = c("#E1F5C4", "#EDE574", "#F9D423", "#FC913A", "#FF4E50")) +
+  tm_layout(
+    title = "Hawaii",
+    frame = FALSE,
+    bg.color = NA,
+    legend.show = FALSE,
+    title.position = c("LEFT", "BOTTOM")
+    )
+alaska_map <- tm_shape(alaska) +
+  tm_polygons(
+    col = "total_pop_15",
+    breaks = c(
+      0, 5000000, 10000000, 15000000, 20000000,
+      25000000, 30000000, 35000000, 40000000),
+    pal = c("#E1F5C4", "#EDE574", "#F9D423", "#FC913A", "#FF4E50")) +
+  tm_layout(
+    title = "Alaska",
+    frame = FALSE,
+    bg.color = NA,
+    legend.show = FALSE,
+    title.position = c("LEFT", "TOP")
+    )
+```
+```{r}
+pushViewport(
+  viewport(
+    layout = grid.layout(
+      2, 1, heights = unit(c(us_states_alaska_ratio, 1), "null")
+      )
+    )
+  )
+print(
+  alaska_map,
+  vp = viewport(layout.pos.row = 1)
+  )
+print(
+  us_states_map,
+  vp = viewport(layout.pos.row = 2)
+  )
+print(
+  hawaii_map,
+  vp = viewport(
+    x = 0.1, y = 0.07,
+    height = us_states_hawaii_ratio / sum(c(us_states_alaska_ratio, 1))
+    )
+  )
+grid.lines(x = c(0, 1), y = c(0.58, 0.58), gp = gpar(lty = 2))
+grid.lines(x = c(0, 0.2), y = c(0.33, 0), gp = gpar(lty = 2))
+```
+
+
+```{r}
+# select the years starting in 2009
+honey0912 <- honey_csv[honey_csv$year > 2008, ]
+# bind missing data to the original data
+honey0912 <- rbind(
+  honey0912,
+  # create an empty matrix for all the states that are missing
+  matrix(
+    NA,
+    ncol = ncol(honey0912),
+    nrow = 4 * length(
+      unique(abbrev$state)[!unique(abbrev$state) %in% unique(honey0912$state)]
+      ),
+    dimnames = list(
+      c(
+        seq_len(
+          4 * length(
+            unique(abbrev$state)[!unique(abbrev$state) %in% unique(honey0912$state)])
+          )
+        ),
+      colnames(honey0912)
+      )
+    )
+  )
+# add the missing state names
+honey0912[
+  is.na(honey0912$state), ]$state <- sort(
+    rep(unique(abbrev$state)[!unique(abbrev$state) %in% unique(honey0912$state)], 4)
+    )
+# add the year for the missing states
+honey0912[is.na(honey0912$year), ]$year <- rep(2009:2012, 10)
+# merge the honey dataset with the state abbreviations
+honey0912 <-  merge.data.frame(honey0912, abbrev, by = "state")
+# change the colnames of our two datasets for merging
+colnames(honey0912)[c(1, 9)] <- c("short", "State")
+# use the us_states data from spData
+colnames(us_states)[2] <- "State"
+# remove the district of columbia from the us_states dataset from spData
+us_states <- us_states[us_states$State != "District of Columbia", ]
+# merge the data together
+honey0912 <- merge(honey0912, us_states[, c(2, 7)], by = "State", all.y = TRUE)
+# turn it into an sf object
+honey0912 <- st_as_sf(honey0912)
+```
+
+```{r}
+tm_shape(honey0912) +
+  tm_polygons(
+    col = "priceperlb",
+    style = "cont",
+    pal = viridis(10, direction = -1),
+    title = "Price in US$ per lb"
+    ) +
+  tm_facets(by = "year", ncol = 2) +
+  tm_layout(legend.outside.size = 0.2)
+```
+```{r}
+library(gifski)
+honey_animation <- tm_shape(honey_sf) +
+  tm_polygons(
+    col = "Price_per_lb",
+    style = "cont",
+    pal = viridis(10, direction = -1)
+    ) +
+  tm_facets(along = "year") +
+  tm_layout(legend.position = c("left", "bottom"))
+tmap_animation(
+  honey_animation, filename = "honey.gif",
+  delay = 50, width = 2400, height = 1200
+  )
+```
+
+
+Interactive maps with tmap
+```{r}
+tmap_mode("view")
+tm_shape(bavaria) + tm_polygons(col = "pop_development", midpoint = 0)
+```
+
+```{r}
+tm_shape(bavaria) +
+  tm_polygons(col = "pop_development", midpoint = 0) +
+  tm_basemap("Stamen.Watercolor")
+```
+
+
+```{r}
+accidents <- read_csv(
+  here(
+    "data",
+    "workshop4",
+    "chapter2",
+    "accidents.csv"
+  )
+)
+
+accidents <- accidents %>%
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326) %>%
+  st_cast("POINT")
+```
+```{r}
+london <- read_sf(
+  here(
+    "data",
+    "workshop4",
+    "chapter2",
+    "London_Borough_Excluding_MHW.shp"
+  )
+) %>%
+  st_transform(4326)
+
+london_union <- st_union(london)
+
+accidents_m <- st_intersects(
+  london_union,
+  accidents
+)
+
+accidents <- accidents[
+  unlist(accidents_m),
+]
+
+london <- london[london$NAME %in% c("City of London", "Westminster", "Camden"), ]
+london <- st_union(london)
+accidents_m <- st_intersects(london, accidents)
+accidents <- accidents[unlist(accidents_m), ]
+
+# do some ordering for the legend
+accidents$Light_Conditions <- ordered(
+  accidents$Light_Conditions,
+  levels = c(
+    "Daylight",
+    "Darkness - lights lit",
+    "Darkness - lighting unknown",
+    "Darkness - lights unlit",
+    "Darkness - no lighting",
+    "Data missing or out of range"
+    )
+  )
+# define the map
+map_london <- tm_shape(accidents) +
+  tm_dots(
+    group = "2017",
+    col = "Light_Conditions",
+    palette = "Dark2",
+    popup.vars = TRUE
+  ) +
+  tm_view(alpha = 1)
+
+map_london
+```
+
+## REVISITING MY WORKSHOP 4 MAP ##
+```{r}
+
+library(lubridate)
+
+sdat <- sdat %>%
+  mutate(
+    sample_datetime = dmy_hm(sample_time_utc),
+    sample_date = as.Date(sample_datetime),
+    sample_year = factor(year(sample_datetime)),
+    sample_month = floor_date(sample_datetime, unit = "month")
+  )
+
+glimpse(sdat)
+
+range(
+  sdat$sample_datetime,
+  na.rm = TRUE
+)
+```
+```{r}
+tmap_mode("view")
+
+richness_map_interactive <- tm_shape(shelf) +
+  tm_polygons(
+    col = "#BFE3E8",
+    alpha = 0.35,
+    border.col = NA,
+    group = "Continental shelf"
+  ) +
+
+  tm_shape(aus) +
+  tm_polygons(
+    col = "#E6E2D8",
+    border.col = "#666666",
+    alpha = 0.8,
+    group = "Australia"
+  ) +
+
+  tm_shape(sdat) +
+  tm_dots(
+    col = "richness_raw",
+    palette = "-YlGnBu",
+    style = "cont",
+    size = 0.03,
+    alpha = 0.75,
+    title = "Copepod richness",
+    group = "Samples",
+    popup.vars = c(
+      "Silk ID" = "silk_id",
+      "Segment" = "segment_no",
+      "Richness" = "richness_raw",
+      "Region" = "region",
+      "Route" = "route",
+      "Vessel" = "vessel",
+      "Sample time" = "sample_time_utc"
+    )
+  ) +
+
+  tm_view(
+    alpha = 1
+  )
+
+richness_map_interactive
+
+tmap_save(
+richness_map_interactive,
+filename = here(
+"outputs",
+"workshop4",
+"copepod-richness-interactive.html"
+)
+)
+```
+
+
+
 
 
