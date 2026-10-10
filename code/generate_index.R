@@ -33,7 +33,7 @@ html_content <- c(
   "</head>",
   "<body>",
   "    <h1>My Interactive HTML Assets</h1>",
-  "    <p>Right-click any link below and select 'Copy Link Address' to grab the live URL for Google Slides.</p>",
+  "    <p>Right-click any link below and select 'Copy Link Address' to grab the live URL.</p>",
   "    <ul>"
 )
 
