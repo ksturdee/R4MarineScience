@@ -57,10 +57,23 @@ library(readxl)
 The catch data is split across 4 tabs in one excel file Load. We must load them indivudally.
 
 ```{r load-catch-1}
-catch1 <- read_excel(here::here("data/workshop2/estuary_catch_log.xlsx"), sheet = "Lower_ross")
-catch2 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 2)
-catch3 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 3)
-catch4 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 4)
+catch1 <- read_excel(here::here("data", "workshop2", "estuary_catch_log.xlsx"), sheet = 2)
+
+catch2 <- read_excel(here::here("data", "workshop2", "estuary_catch_log.xlsx"),
+  sheet = 2
+)
+catch3 <- read_excel(here::here("data", "workshop2", "estuary_catch_log.xlsx"),
+  sheet = 3
+)
+catch4 <- read_excel(here::here("data", "workshop2", "estuary_catch_log.xlsx"),
+  sheet = 4
+)
+
+metadata <- read_csv(here::here("data", "workshop2", "estuary_metadata.csv")
+)
+
+species_dict <- read_csv(here::here("data", "workshop2", "species_dictionary.csv")
+)
 ```
 
 ## Inspect individual tabs
@@ -106,7 +119,9 @@ Now I know I have four sites, and four species. By naming convention, I can infe
 ## Load metadata
 
 ```{r load-metadata}
-metadata <- read_csv("../data/workshop2/estuary_metadata.csv")
+metadata <- readr::read_csv(
+  here::here("data", "workshop2", "estuary_metadata.csv")
+)
 ```
 
 ## Checks
@@ -233,8 +248,13 @@ At first glance it looks good. However, note that there are only 427 rows of dat
 # Wrangle final dataset
 
 ```{r Clean Master Dataset}
-catch_data_final <- 
-catch_data_final |> 
+catch_data_final <- catch_data_final |> 
+  mutate(
+    zone = factor(
+      as.character(zone),
+      levels = c("Upstream", "Middle", "Downstream")
+    )
+  )
   complete(
     nesting(site, date, 
            # lat, lon, 
@@ -370,21 +390,24 @@ Because temperature and turbidity are not as strongly differentiated across the 
 Final_stats <- catch_data_final |>
   group_by(zone, scientific_name) |>
   summarise(
-    mean_catch = mean(count),
-    sd_catch = sd(count),
-    sem_catch = sd(count) / sqrt(n()),
-    mean_salinity = mean(mean_salinity),
-    sd_salinity = sd(mean_salinity),
+    n_catch = sum(!is.na(count)),
+    mean_catch = mean(count, na.rm = TRUE),
+    sd_catch = sd(count, na.rm = TRUE),
+    sem_catch = sd(count, na.rm = TRUE) / sqrt(sum(!is.na(count))),
+    n_salinity = sum(!is.na(mean_salinity)),
+    mean_salinity = mean(mean_salinity, na.rm = TRUE),
+    sd_salinity = sd(mean_salinity, na.rm = TRUE),
+    sem_salinity = sd(mean_salinity, na.rm = TRUE) /
+      sqrt(sum(!is.na(mean_salinity))),
     .groups = "drop"
   )
-Final_stats
 
 ```
 
 # Final Figure
 
 ```{r Multi-panel plot (faceted by species)}
-#| fig-cap: "Figure 5. Predatory Fish Abundance across Estuarine Salinity Gradients in the Ross River Estuary System, Townsville, QLD, Australia, May 2026. Mean abundance (n day^-1) with standard error bars for each species across the three zones (downstream, midstream, upstream). Points represent individual survey counts (n = 30 per species per zone)."
+#| fig-cap: "Figure 5. Predatory Fish Abundance across Estuarine Salinity Gradients in the Ross River Estuary System, Townsville, QLD, Australia, May 2026. Mean abundance (n day^-1) with standard error bars for each species across the three zones (downstream, midstream, upstream). Points are site-day observations and the sample size varies by zone"
 #| fig-height: 6
 #| fig-width: 10
 
@@ -438,8 +461,6 @@ Final_stats |>
   labs(
     x = "Spatial Zone",
     # scientific label for y axis of n day -1 use regex to get superscript
-    y = expression("Abundance (n day"^-1*")"),
-  #  y = "Daily abundance (n day^-1)"
     y = "Abundance (per day)"
   )
 ```
@@ -449,6 +470,7 @@ write_csv(
   catch_data_final,
   here::here(
     "outputs",
+    "workshop2",
     "workshop_02_clean_estuary_master.csv"
   )
 )
@@ -457,18 +479,8 @@ write_csv(
   Final_stats,
   here::here(
     "outputs",
+    "workshop2",
     "workshop_02_fish_salinity_summary.csv"
   )
 )
-
-fish_salinity_plot <- Final_stats |>
-  ggplot(
-    aes(
-      x = zone,
-      y = mean_catch,
-      group = scientific_name
-    )
-  ) +
-  # remaining layers
-  NULL
 ```
