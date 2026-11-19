@@ -16,9 +16,8 @@ names(CatchDataQLDGov)
 head(CatchDataQLDGov)
 dim(CatchDataQLDGov)
 
-# This told us that the data has 1,000 rows and 7 columns. The column names are 
-# not very informative, and there are some missing values in the data. We must
-# wrangle the data to make it more usable.
+# Use the inspection results above to confirm the export's current dimensions,
+# variable names, and missingness before defining the analysis.
 
 # Time: Year, month
 # Space: Area, BeachName

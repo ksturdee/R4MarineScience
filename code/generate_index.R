@@ -1,59 +1,56 @@
-# 1. Set the directory path where your HTML files are located
-# (Leave as "." if running from the same directory, or change to your specific folder path)
-target_dir <- "." 
-
-# 2. Find all HTML files in the folder (including subfolders)
-html_files <- list.files(
-  path = target_dir, 
-  pattern = "\\.html$", 
-  recursive = TRUE, 
-  ignore.case = TRUE
+pages <- data.frame(
+  href = c(
+    "docs/workshop_01_penguins/penguin_analysis.html",
+    "docs/workshop_02_datarescue/workshop_02_estuary_data_rescue.html",
+    "docs/workshop_03_PlotDeconstruction/workshop_03_PlotDeconstruction.html",
+    "docs/workshop_03_QLDdataDiscovery/workshop_03_qfish_data_discovery.html",
+    "outputs/workshop4/copepod-richness-sst.png",
+    "outputs/workshop4/copepod-richness-interactive.html"
+  ),
+  label = c(
+    "Workshop 1 | Data Exploration and Visualisation",
+    "Workshop 2 | Estuary Data Cleaning and Integration",
+    "Workshop 3 | Scientific Figure Reconstruction",
+    "Workshop 3 | Queensland Fisheries Data Discovery",
+    "Workshop 4 | Copepod Richness and Sea-Surface Temperature",
+    "Workshop 4 | Interactive Copepod Richness Map"
+  ),
+  stringsAsFactors = FALSE
 )
 
-# 3. Exclude 'index.html' itself so it doesn't list itself in the links
-html_files <- html_files[html_files != "index.html"]
-
-# 4. Generate the HTML code for the index file
 html_content <- c(
   "<!DOCTYPE html>",
-  "<html lang='en'>",
+  "<html lang=\"en\">",
   "<head>",
-  "    <meta charset='UTF-8'>",
-  "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>",
-  "    <title>Google Slides HTML Assets Directory</title>",
-  "    <style>",
-  "        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #333; }",
-  "        h1 { color: #24292e; border-bottom: 1px solid #eaecef; padding-bottom: 10px; }",
-  "        p { color: #586069; font-style: italic; }",
-  "        ul { list-style-type: none; padding: 0; }",
-  "        li { background: #f6f8fa; margin: 8px 0; padding: 12px; border: 1px solid #e1e4e6; border-radius: 6px; }",
-  "        a { color: #0366d6; text-decoration: none; font-weight: bold; display: block; }",
-  "        a:hover { text-decoration: underline; }",
-  "    </style>",
+  "  <meta charset=\"utf-8\">",
+  "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">",
+  "  <title>Marine Science | R Analysis &amp; Visualisation</title>",
+  "  <style>",
+  "    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #333; }",
+  "    h1 { color: #24292e; border-bottom: 1px solid #eaecef; padding-bottom: 10px; }",
+  "    p { color: #586069; }",
+  "    ul { list-style: none; padding: 0; }",
+  "    li { background: #f6f8fa; margin: 8px 0; padding: 12px; border: 1px solid #e1e4e8; border-radius: 6px; }",
+  "    a { color: #0366d6; text-decoration: none; font-weight: bold; }",
+  "    a:hover { text-decoration: underline; }",
+  "  </style>",
   "</head>",
   "<body>",
-  "    <h1>My Interactive HTML Assets</h1>",
-  "    <p>Right-click any link below and select 'Copy Link Address' to grab the live URL.</p>",
-  "    <ul>"
+  "  <h1>Marine Science: R Analysis &amp; Visualisation</h1>",
+  "  <p>A collection of reproducible marine science analyses, scientific visualisations, and interactive spatial maps developed in R for MB5370: Techniques in Marine Science 1 at James Cook University.</p>",
+  "  <ul>"
 )
 
-# 5. Dynamically add each file as a list item link
-if (length(html_files) == 0) {
-  html_content <- c(html_content, "        <li>No HTML files found in this directory.</li>")
-} else {
-  for (file in html_files) {
-    # Visual cleanup: display the file name nicely but point to the actual path
-    clean_name <- gsub("_", " ", basename(file))
-    link_item <- paste0("        <li><a href='", file, "' target='_blank'>🔗 ", clean_name, "</a></li>")
-    html_content <- c(html_content, link_item)
-  }
+for (i in seq_len(nrow(pages))) {
+  html_content <- c(
+    html_content,
+    sprintf(
+      "    <li><a href=\"%s\">%s</a></li>",
+      pages$href[[i]],
+      pages$label[[i]]
+    )
+  )
 }
 
-# 6. Close the HTML tags
-html_content <- c(html_content, "    </ul>", "</body>", "</html>")
-
-# 7. Write the file to your folder
-output_path <- file.path(target_dir, "index.html")
-writeLines(html_content, output_path)
-
-cat("Successfully generated directory file at:", normalizePath(output_path), "\n")
+html_content <- c(html_content, "  </ul>", "</body>", "</html>")
+writeLines(html_content, "index.html", useBytes = TRUE)

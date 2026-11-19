@@ -16,3 +16,6 @@
 # Temporary files
 *.swp
 *.tmp
+
+# Generated duplicate of the canonical Markdown README
+/README.html
