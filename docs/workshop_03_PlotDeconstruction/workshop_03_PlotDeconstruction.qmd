@@ -35,7 +35,7 @@ The dataset includes individual fish measurements, liver lipid content, fatty-ac
 
 Budge, S. M., Townsend, K., Ziegler, S. E., and Lall, S. P. (2023). Fatty acid isotopic composition in Atlantic pollock is not influenced by environmentally relevant dietary fat concentrations. Oecologia, 202, 513–522.
 
-DOI: [10.1007/s00442-023-05403-z](https://doi.org/10.1007/s00442-023-05403-z)
+DOI: [10.1007/s00442-023-05403-z](https://doi.org/10.1007/s00442-023-05403-z) 
 
 ## Original Figure
 
@@ -64,9 +64,11 @@ However, the figure relies on four small black symbols to distinguish the Initia
 The paper supplied a dataset, which was explored to identify the variables used to construct Figure 2. The data contains individual measurements rather than only summary statistics, making it possible to investigate the data underlying the published figure directly.
 
 ```{r load packages}
+# Load required packages
 library(tidyverse)
 library(readxl)
 library(kableExtra)
+library(here)
 
 # Check excel sheet
 excel_sheets(here::here("data", "workshop3", "fatty_acid_isotope_rawdata", "budge_2023_supplementary_data.xlsx"))
@@ -74,17 +76,27 @@ excel_sheets(here::here("data", "workshop3", "fatty_acid_isotope_rawdata", "budg
 ```
 
 ```{r}
-# Load the FA d13C sheet
-fa_d13c <- read_excel(
-  here::here(
-    "data", "workshop3", "fatty_acid_isotope_rawdata",
-    "budge_2023_supplementary_data.xlsx"
-  ),
+# Define the supplementary workbook location
+supplementary_data_path <- here::here(
+  "data",
+  "workshop3",
+  "fatty_acid_isotope_rawdata",
+  "budge_2023_supplementary_data.xlsx"
+)
+
+# Inspect available worksheets
+readxl::excel_sheets(
+  supplementary_data_path
+)
+
+# Import the FA d13C worksheet
+fa_d13c <- readxl::read_excel(
+  supplementary_data_path,
   sheet = "FA d13C"
 )
 
-# Inspect
-glimpse(fa_d13c)
+# Inspect the dataset
+dplyr::glimpse(fa_d13c)
 ```
 
 ```{r}
