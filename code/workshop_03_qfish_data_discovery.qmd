@@ -61,9 +61,34 @@ Figure 1 shows annual shark catch records across the six Queensland regions with
 #| out-width: 100%
 #| echo: false
 
-knitr::include_graphics(
-  "outputs/workshop3/qfish_regional_trends.png"
+CatchDataQLDGov <- read_csv(
+  here::here("data", "workshop3", "CatchDataQLDGov.csv"),
+  show_col_types = FALSE
 )
+
+annual_catch <- CatchDataQLDGov |>
+  filter(!is.na(Year), !is.na(Area)) |>
+  count(Year, Area, name = "catches")
+
+top_areas <- annual_catch |>
+  group_by(Area) |>
+  summarise(total_catches = sum(catches), .groups = "drop") |>
+  arrange(desc(total_catches)) |>
+  slice_head(n = 6)
+
+top_area_trends <- annual_catch |>
+  filter(Area %in% top_areas$Area)
+
+ggplot(top_area_trends, aes(x = Year, y = catches)) +
+  geom_line() +
+  geom_point(shape = 24, fill = "white") +
+  facet_wrap(~Area) +
+  labs(
+    x = "Year",
+    y = "Recorded captures",
+    title = "Annual Shark Control Program captures by region"
+  ) +
+  theme_classic()
 
 ```
 
@@ -74,45 +99,25 @@ Table 1 summarises catch records across the six focal regions and highlights dif
 #| tbl-cap: "Summary statistics for the six Queensland regions with the highest number of recorded shark catches."
 #| echo: false
 
-CatchDataQLDGov <- read_csv(
-  here::here("data", "workshop3", "CatchDataQLDGov.csv"),
-  show_col_types = FALSE
-)
-
-annual_catch <- CatchDataQLDGov |>
-  group_by(Year, Area) |>
-  summarise(
-    catches = n(),
-    .groups = "drop"
-  )
-
-top_areas <- annual_catch |>
-  group_by(Area) |>
-  summarise(
-    total_catches = sum(catches),
-    .groups = "drop"
-  ) |>
-  arrange(desc(total_catches)) |>
-  slice_head(n = 6)
-
-top_area_trends <- annual_catch |>
-  filter(Area %in% top_areas$Area)
-
+# Summarise annual catch records across the six focal regions
 regional_summary <- top_area_trends |>
-  group_by(Area) |>
-  summarise(
+  dplyr::group_by(Area) |>
+  dplyr::summarise(
     `Total Catches` = sum(catches),
     `Mean Annual Catch` = mean(catches),
     `Peak Year` = Year[which.max(catches)],
     `Peak Catch` = max(catches),
     .groups = "drop"
   ) |>
-  arrange(desc(`Total Catches`))
+  dplyr::arrange(
+    dplyr::desc(`Total Catches`)
+  )
 
+# Display formatted summary table
 regional_summary |>
-  gt()
+  gt::gt()
 ```
 
 ## Interpretation
 
-Substantial regional differences were observed in shark catch records across Queensland. Townsville and Mackay recorded the highest total catches and exhibited the largest annual peaks during the study period. In contrast, Cairns, Gold Coast, and Sunshine Coast North showed comparatively stable catch levels through time. Temporal trends were not consistent among regions, indicating that catch patterns vary spatially across Queensland. These results demonstrate the value of aggregating fisheries data across both time and space to identify regional trends that may warrant further investigation by fisheries managers.
+Substantial regional differences were observed in shark catch records across Queensland. Townsville and Mackay recorded the highest total catches and exhibited the largest annual peaks during the study period. In contrast, Cairns, Gold Coast, and Sunshine Coast North showed comparatively stable catch levels through time. Temporal trends were not consistent among regions, indicating that catch patterns vary spatially across Queensland. These results demonstrate the value of aggregating fisheries data across both time and space to identify regional trends that may warrant further investigation by fisheries managers. Also, these results represent recorded captures rather than changes in shark abundance; differences in program effort, gear deployment and reporting may also contribute to the observed regional trends.

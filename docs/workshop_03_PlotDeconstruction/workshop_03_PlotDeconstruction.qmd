@@ -35,7 +35,7 @@ The dataset includes individual fish measurements, liver lipid content, fatty-ac
 
 Budge, S. M., Townsend, K., Ziegler, S. E., and Lall, S. P. (2023). Fatty acid isotopic composition in Atlantic pollock is not influenced by environmentally relevant dietary fat concentrations. Oecologia, 202, 513–522.
 
-DOI: \[10.1007/s00442-023-05403-z\](https://doi.org/10.1007/s00442-023-05403-z)
+DOI: [10.1007/s00442-023-05403-z](https://doi.org/10.1007/s00442-023-05403-z)
 
 ## Original Figure
 
@@ -44,7 +44,10 @@ DOI: \[10.1007/s00442-023-05403-z\](https://doi.org/10.1007/s00442-023-05403-z)
 #| fig-cap: "Figure 1. Original Figure 2 from Budge et al. (2023) showing liver fatty-acid δ¹³C values for initial fish and three dietary treatments."
 #| 
 knitr::include_graphics(
-  "../data/workshop3/fatty_acid_isotope_rawdata/workshop_03_original_figure_2.png"
+  here::here(
+    "data", "workshop3", "fatty_acid_isotope_rawdata",
+    "workshop_03_original_figure_2.png"
+  )
 )
 ```
 
@@ -66,15 +69,17 @@ library(readxl)
 library(kableExtra)
 
 # Check excel sheet
-excel_sheets(
-  "../data/workshop3/fatty_acid_isotope_rawdata/budge_2023_supplementary_data.xlsx"
-)
+excel_sheets(here::here("data", "workshop3", "fatty_acid_isotope_rawdata", "budge_2023_supplementary_data.xlsx"))
+
 ```
 
 ```{r}
 # Load the FA d13C sheet
 fa_d13c <- read_excel(
-  "../data/workshop3/fatty_acid_isotope_rawdata/budge_2023_supplementary_data.xlsx",
+  here::here(
+    "data", "workshop3", "fatty_acid_isotope_rawdata",
+    "budge_2023_supplementary_data.xlsx"
+  ),
   sheet = "FA d13C"
 )
 
@@ -294,6 +299,21 @@ improved_plot <- ggplot(
   )
 
 improved_plot
+
+dir.create(
+  here::here("outputs", "workshop3"),
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+
+ggsave(
+  filename = here::here("outputs", "workshop3", "improved_figure_2.png"),
+  plot = improved_plot,
+  width = 10,
+  height = 6,
+  dpi = 300,
+  bg = "white"
+)
 ```
 
 ## Reflection
