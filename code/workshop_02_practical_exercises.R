@@ -1,6 +1,7 @@
 # Load required packages
 library(tidyverse)
 library(r4ds.tutorials)
+library(lubridate)
 
 # Pivoting data to be longer in order to tidy it
 df1 <- tribble(
@@ -71,7 +72,7 @@ df2 |>
 # We want to create a single plot that shows the distribution of all morphometric measurements (bill length, bill depth, flipper length, and body mass) for our penguins
 
 # Open palmer penguins package
-penguins <- read.csv("data/penguins.csv")
+penguins <- read.csv(here::here("data", "workshop1", "penguins.csv"))
 
 # Create a long version of the penguins dataset
 
@@ -300,10 +301,8 @@ print(island_metadata)
 
 clean_metadata <- island_metadata |>
   mutate(
-    island_name = str_trim(island_name),
-    island_name = str_to_title(island_name),
-    island_name = str_replace_all(island_name, pattern = " ", replacement = ""),
-    station_install = dmy(station_install), # Use dmy() to parse dates in day-month-year format
+    island_name = str_to_title(str_squish(island_name)),
+    station_install = dmy(station_install)
   )
 
 clean_metadata
@@ -314,6 +313,20 @@ penguins_spatial <- penguins |>
             by = join_by(island == island_name))
 
 head(penguins_spatial)
+
+maximum_mass_by_island <- penguins_spatial |>
+  drop_na(body_mass_g) |>
+  group_by(species, island) |>
+  summarise(
+    max_body_mass_g = max(body_mass_g),
+    .groups = "drop"
+  ) |>
+  pivot_wider(
+    names_from = island,
+    values_from = max_body_mass_g
+  )
+
+maximum_mass_by_island
 
 # Exercise 3: Wide summary matrix
 # A collaborator has asked for a clean, publication-ready table showing the maximum body mass recorded for each species, separated by island.

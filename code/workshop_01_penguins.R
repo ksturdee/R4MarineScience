@@ -126,13 +126,22 @@ print(biological_signal)
 
 
 # 1. Exporting our collapsed summary table as a universal flat text file
+dir.create(
+  here::here("outputs", "workshop1"),
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+
 write_csv(
   biological_signal,
-  here::here("outputs", "penguin_species_mass_summary.csv")
+  here::here("outputs", "workshop1", "penguin_species_mass_summary.csv")
 )
 
 # 2. Saving our cleaned morphological cohort table as a native R binary file
-saveRDS(morphology_metrics, here::here("outputs", "clean_penguin_morphology_cohort.rds"))
+saveRDS(
+  morphology_metrics,
+  here::here("outputs", "workshop1", "clean_penguin_morphology_cohort.rds")
+)
 
 mass_compare_plot <- penguins |>
   group_by(species, island) |>
@@ -191,10 +200,14 @@ mass_compare_plot <- penguins |>
 
 mass_compare_plot
 
-ggsave("outputs/mass_compare_plot.png", 
-       plot = mass_compare_plot, 
-       width = 120, height = 120, 
-       units = "mm", dpi = 300)
+ggsave(
+  filename = here::here("outputs", "workshop1", "mass_compare_plot.png"),
+  plot = mass_compare_plot,
+  width = 120,
+  height = 120,
+  units = "mm",
+  dpi = 300
+)
 
 
 
