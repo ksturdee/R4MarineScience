@@ -101,7 +101,7 @@ catch3
 catch4
 ```
 
-The species names are messy but they are consistent across the four tabs. The site names are also messy and inconsistent across the four tabs. \## Bind rows together
+The species names are messy but they are consistent across the four tabs.
 
 ```{r bind-catch}
 catch_data <- bind_rows(catch1, catch2, catch3, catch4)
