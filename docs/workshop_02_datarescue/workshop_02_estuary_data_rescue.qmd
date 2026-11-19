@@ -129,14 +129,6 @@ catch_data |>
 
 Now I know I have four sites, and four species. By naming convention, I can infer that the sites are located along the Ross River estuary, but I need to check this against the metadata once I load it. The species names are also messy and will need to be cleaned before I can join with the taxonomic dictionary to get scientific names.
 
-## Load metadata
-
-```{r load-metadata}
-metadata <- readr::read_csv(
-  here::here("data", "workshop2", "estuary_metadata.csv")
-)
-```
-
 ## Checks
 
 ```{r inspect-metadata}
@@ -182,8 +174,7 @@ OK site names fixed in both now (but note the vars themselves still have differe
 ### Load Taxonomic Dictionary
 
 ```{r load-species-dict}
-species_dict <- read_csv("../data/workshop2/species_dictionary.csv")
-# Check
+# Inspect the taxonomic dictionary
 head(species_dict)
 ```
 
@@ -202,10 +193,20 @@ Only difference is between mangrove_jack and MANGROVE JACK. We can fix this by s
 ### Standardise species (common name) variable in the catch log to match dictionary
 
 ```{r fix-species-names}
+# Standardise species names in the catch log
 catch_data <- catch_data |>
   mutate(
+    species = as.character(species),
     species = str_to_lower(str_trim(species)),
     species = str_replace_all(species, " ", "_")
+  )
+
+# Standardise species names in the taxonomic dictionary
+species_dict <- species_dict |>
+  mutate(
+    common_name = as.character(common_name),
+    common_name = str_to_lower(str_trim(common_name)),
+    common_name = str_replace_all(common_name, " ", "_")
   )
 ```
 
@@ -261,23 +262,38 @@ At first glance it looks good. However, note that there are only 427 rows of dat
 # Wrangle final dataset
 
 ```{r Clean Master Dataset}
-catch_data_final <- catch_data_final |> 
+# Standardise zone order and complete missing species records
+catch_data_final <- catch_data_final |>
   mutate(
     zone = factor(
       as.character(zone),
-      levels = c("Upstream", "Middle", "Downstream")
+      levels = c(
+        "Upstream",
+        "Middle",
+        "Downstream"
+      )
     )
-  )
-  complete(
-    nesting(site, date, 
-           # lat, lon, 
-            zone, mean_temp, mean_salinity, mean_turbidity),
+  ) |>
+  tidyr::complete(
+    tidyr::nesting(
+      site,
+      date,
+      lat,
+      lon,
+      zone,
+      mean_temp,
+      mean_salinity,
+      mean_turbidity
+    ),
     scientific_name
   ) |>
   mutate(
-    # Convert the resulting NA counts to 0
+    # Missing species records within completed surveys represent zero catches
     count = coalesce(count, 0)
   )
+
+# Confirm the completed dataset contains 480 records
+stopifnot(nrow(catch_data_final) == 480)
 
 catch_data_final
 ```
@@ -291,18 +307,42 @@ Perfect, we now have 480 rows. Now, we can shift gears and start thinking about 
 #| subtitle: "Data from May 2026, Ross River Estuary System, Townsville, QLD, Australia"
 #| fig-height: 6
 #| fig-width: 8
-# Table
-sal_sum <- 
-  catch_data_final |>
-  group_by(zone) |>
-  summarise(
-   sem_salinity = sd(mean_salinity) / sqrt(n()),
-    sd_salinity = sd(mean_salinity, na.rm = TRUE),
-    median_salinity = median(mean_salinity, na.rm = TRUE),
-   mean_salinity = mean(mean_salinity, na.rm = TRUE),
+
+# Summarise salinity using unique site-date observations
+# This avoids counting the same daily sensor measurement multiple times
+
+sal_sum <- catch_data_final |>
+  dplyr::distinct(
+    site,
+    date,
+    zone,
+    mean_salinity
+  ) |>
+  dplyr::group_by(zone) |>
+  dplyr::summarise(
+    n_salinity = sum(!is.na(mean_salinity)),
+
+    sd_salinity = sd(
+      mean_salinity,
+      na.rm = TRUE
+    ),
+
+    median_salinity = median(
+      mean_salinity,
+      na.rm = TRUE
+    ),
+
+    mean_salinity = mean(
+      mean_salinity,
+      na.rm = TRUE
+    ),
+
+    sem_salinity = sd_salinity / sqrt(n_salinity),
+
     .groups = "drop"
   )
-sal_sum
+
+print(sal_sum)
 
 # Create a figure theme to use for all figures for consistency and professionalism
 marine_theme <- theme_classic() +
@@ -400,20 +440,67 @@ Because temperature and turbidity are not as strongly differentiated across the 
 
 ```{r Statistical Summary Table}
 #| table: "Table 1. Summary statistics for fish abundance (mean catch per day) and salinity (mean salinity) by zone and species."
-Final_stats <- catch_data_final |>
-  group_by(zone, scientific_name) |>
-  summarise(
+# Summarise fish catch by zone and species
+fish_summary <- catch_data_final |>
+  dplyr::group_by(
+    zone,
+    scientific_name
+  ) |>
+  dplyr::summarise(
     n_catch = sum(!is.na(count)),
-    mean_catch = mean(count, na.rm = TRUE),
-    sd_catch = sd(count, na.rm = TRUE),
-    sem_catch = sd(count, na.rm = TRUE) / sqrt(sum(!is.na(count))),
-    n_salinity = sum(!is.na(mean_salinity)),
-    mean_salinity = mean(mean_salinity, na.rm = TRUE),
-    sd_salinity = sd(mean_salinity, na.rm = TRUE),
-    sem_salinity = sd(mean_salinity, na.rm = TRUE) /
-      sqrt(sum(!is.na(mean_salinity))),
+
+    mean_catch = mean(
+      count,
+      na.rm = TRUE
+    ),
+
+    sd_catch = sd(
+      count,
+      na.rm = TRUE
+    ),
+
+    sem_catch = sd_catch / sqrt(n_catch),
+
     .groups = "drop"
   )
+
+
+# Summarise salinity using unique site-date observations
+salinity_summary <- catch_data_final |>
+  dplyr::distinct(
+    site,
+    date,
+    zone,
+    mean_salinity
+  ) |>
+  dplyr::group_by(zone) |>
+  dplyr::summarise(
+    n_salinity = sum(!is.na(mean_salinity)),
+
+    mean_salinity = mean(
+      mean_salinity,
+      na.rm = TRUE
+    ),
+
+    sd_salinity = sd(
+      mean_salinity,
+      na.rm = TRUE
+    ),
+
+    sem_salinity = sd_salinity / sqrt(n_salinity),
+
+    .groups = "drop"
+  )
+
+
+# Combine fish and environmental summaries
+Final_stats <- fish_summary |>
+  dplyr::left_join(
+    salinity_summary,
+    by = "zone"
+  )
+
+print(Final_stats)
 
 ```
 
