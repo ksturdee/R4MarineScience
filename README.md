@@ -10,6 +10,16 @@ Across four workshops, I practise data management, wrangling, visualisation, rep
 - **Workshop 3 — Data communication and open-data discovery:** A reconstruction and redesign of a published Atlantic pollock figure, plus an analysis of Queensland Shark Control Program records. The QFISH report source is [`code/workshop_03_qfish_data_discovery.qmd`](code/workshop_03_qfish_data_discovery.qmd).
 - **Workshop 4 — Spatial analysis:** Mapping copepod richness with spatial data in [`code/workshop_04_copepodes.Rmd`](code/workshop_04_copepodes.Rmd).
 
+## Selected figures and maps
+
+Copepod Richness and Sea Surface Temperature
+
+[![Copepod richness and SST map](outputs/workshop4/copepod-richness-sst.png)](https://ksturdee.github.io/R4MarineScience/outputs/workshop4/copepod-richness-interactive.html)
+
+*Figure 1. Spatial distribution of copepod richness and mean sea surface temperature around Australia.*
+
+**[Explore the interactive map →](https://ksturdee.github.io/R4MarineScience/outputs/workshop4/copepod-richness-interactive.html)**
+
 ## Repository structure
 
 ```text
