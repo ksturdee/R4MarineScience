@@ -43,13 +43,12 @@ The goal of this exercise is to wrangle extremely messy data, and produce a fina
 
 #| message: true
 #| warning: false
-rm(list = ls())
 
+# Load required packages
 library(tidyverse)
-library(dplyr)
-library(ggplot2)
 library(lubridate)
 library(readxl)
+library(here)
 ```
 
 ## Main dataset
@@ -57,25 +56,39 @@ library(readxl)
 The catch data is split across 4 tabs in one excel file Load. We must load them indivudally.
 
 ```{r load-catch-1}
-catch1 <- read_excel(here::here("data", "workshop2", "estuary_catch_log.xlsx"), sheet = 2)
 
-catch2 <- read_excel(here::here("data", "workshop2", "estuary_catch_log.xlsx"),
-  sheet = 2
-)
-catch3 <- read_excel(here::here("data", "workshop2", "estuary_catch_log.xlsx"),
-  sheet = 3
-)
-catch4 <- read_excel(here::here("data", "workshop2", "estuary_catch_log.xlsx"),
-  sheet = 4
+# Define the original catch-log location
+catch_file <- here::here(
+  "data",
+  "workshop2",
+  "estuary_catch_log.xlsx"
 )
 
-metadata <- read_csv(here::here("data", "workshop2", "estuary_metadata.csv")
+# Import the four worksheets
+catch1 <- readxl::read_excel(catch_file, sheet = 1)
+catch2 <- readxl::read_excel(catch_file, sheet = 2)
+catch3 <- readxl::read_excel(catch_file, sheet = 3)
+catch4 <- readxl::read_excel(catch_file, sheet = 4)
+
+# Import site metadata
+metadata <- readr::read_csv(
+  here::here(
+    "data",
+    "workshop2",
+    "estuary_metadata.csv"
+  )
 )
 
-species_dict <- read_csv(here::here("data", "workshop2", "species_dictionary.csv")
+# Import the taxonomic dictionary
+species_dict <- readr::read_csv(
+  here::here(
+    "data",
+    "workshop2",
+    "species_dictionary.csv"
+  )
 )
+
 ```
-
 ## Inspect individual tabs
 
 Must inspect the data for missing values, discreptancies, and errors before we proceed.
