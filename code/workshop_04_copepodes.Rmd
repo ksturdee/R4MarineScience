@@ -223,6 +223,18 @@ richness_sst_map <-
 
 # Preview map
 print(richness_sst_map)
+
+# Export final copepod richness and SST map
+tmap::tmap_save(
+  richness_sst_map,
+  filename = here::here(
+    "outputs",
+    "workshop4",
+    "copepod-richness-sst.png"
+  ),
+  width = 3000,
+  height = 3000
+)
 ```
 ## Mapping polygons
 ```{r}
@@ -234,29 +246,39 @@ tm_shape(shelf, bbox = sdat) +
   tm_dots()
 ```
 ```{r}
-# Map style 
-tmap_style("white")
+# Map style
+tmap::tmap_style("white")
 
- <- tm_shape(shelf, bbox = sdat) +
-  tm_polygons(col = "lightblue") +
-  tm_shape(aus) +
-  tm_polygons(col = "grey85") +
-  tm_shape(sdat) +
-  tm_dots(
+# Create richness and continental shelf map
+richness_map_aus_shelf <- 
+  tmap::tm_shape(shelf, bbox = sdat) +
+  tmap::tm_polygons(col = "lightblue") +
+  tmap::tm_shape(aus) +
+  tmap::tm_polygons(col = "grey85") +
+  tmap::tm_shape(sdat) +
+  tmap::tm_dots(
     col = "richness_raw",
     palette = "-YlGnBu",
     size = 0.02
   ) +
-  tm_layout(
+  tmap::tm_layout(
     legend.position = c("left", "top"),
     frame = TRUE
   )
 
+# Preview map
+print(richness_map_aus_shelf)
 
+# Create output directory if needed
+dir.create(
+  here::here("outputs", "workshop4"),
+  recursive = TRUE,
+  showWarnings = FALSE
+)
 
 # Export richness and continental shelf map
 tmap::tmap_save(
-  ,
+  richness_map_aus_shelf,
   filename = here::here(
     "outputs",
     "workshop4",
@@ -265,7 +287,6 @@ tmap::tmap_save(
   width = 3000,
   height = 3000
 )
-
 ```
 ## REVISITING MY WORKSHOP 4 MAP ##
 ```{r}
