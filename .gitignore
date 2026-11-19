@@ -1,28 +1,18 @@
-# Files to ignore
-.Rproj.user
+# RStudio temporary files
+.Rproj.user/
 .Rhistory
 .RData
 .Ruserdata
-.DS_Store
+.Renviron
 
-# Extensions to ignore - toggle on and off as required
- *.html
- *.png
- *.jpg
- *.jpeg
-# *.eps
-# *.pdf
-# *.bmp
-# *.svg
-# *.tiff
-*.Rproj
-*DS_Store
+# macOS files
+*.DS_Store
 
-# Folders to ignore
-archive/
+# Quarto and R Markdown temporary files
+.quarto/
+*_cache/
+*_files/
 
-# Keywords to ignore
-*archive
-*scratch
-*tutor*
-*_files
+# Temporary files
+*.swp
+*.tmp
