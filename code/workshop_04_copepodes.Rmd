@@ -67,7 +67,7 @@ Visualise species richness in a non-spatial way
 ```{r}
 ggplot(dat, aes(x = latitude, y = richness_raw)) +
   stat_smooth() +
-  geom_point()
+  geom_point() +
   labs(x = "Latitude", y = "Species Richness") +
   theme_minimal()
 ```
@@ -110,6 +110,8 @@ dat,
 coords = c("longitude", "latitude"),
 crs = 4326
 )
+# Confirm the coordinate reference system
+sf::st_crs(sdat)
 
 sdat
 ```
@@ -235,7 +237,7 @@ tm_shape(shelf, bbox = sdat) +
 # Map style 
 tmap_style("white")
 
-tm2 <- tm_shape(shelf, bbox = sdat) +
+ <- tm_shape(shelf, bbox = sdat) +
   tm_polygons(col = "lightblue") +
   tm_shape(aus) +
   tm_polygons(col = "grey85") +
@@ -243,17 +245,26 @@ tm2 <- tm_shape(shelf, bbox = sdat) +
   tm_dots(
     col = "richness_raw",
     palette = "-YlGnBu",
-    size = 0.1
+    size = 0.02
   ) +
   tm_layout(
     legend.position = c("left", "top"),
     frame = TRUE
   )
 
-tm2
 
-tm2 <- tmap_save(tm2, filename = here("outputs/workshop4", "Richness-map-aus-shelf.png"), 
-          width = 3000, height = 3000)
+
+# Export richness and continental shelf map
+tmap::tmap_save(
+  ,
+  filename = here::here(
+    "outputs",
+    "workshop4",
+    "Richness-map-aus-shelf.png"
+  ),
+  width = 3000,
+  height = 3000
+)
 
 ```
 ## REVISITING MY WORKSHOP 4 MAP ##
